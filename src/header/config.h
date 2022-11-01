@@ -14,12 +14,12 @@ namespace cfg {
     class Config {
     public:
         Config() = default;
-        Config(string &path);
+        explicit Config(string &path);
 
-        string getToken(string &path);
+        string getToken();
 
     private:
-        static string token;
+        string token;
         string path;
     };
 

@@ -19,30 +19,32 @@ bool fileExists (const string& name) {
     }
 }
 
-string Config::getToken(string &path) {
+string Config::getToken() {
     fstream file;
     string TOKEN;
+
     short count = 0;
 
     if (!fileExists(path))
         return "Invalid File";
 
     file.open(path, ios::in);
+
     if (!file.is_open())
         return "File can't be open.";
 
     while (!file.eof()) {
-        count++;
-        if (count >= 2) {
+        getline(file, TOKEN);
+
+        if (++count >= 2 and !TOKEN.empty()) {
             file.close();
             return "Token file can't be longer than 2 lines!";
         }
-
-        getline(file, TOKEN);
     }
     file.close();
 
     return TOKEN;
 }
+
 
 Config::Config(string &path) : path(path) {}
