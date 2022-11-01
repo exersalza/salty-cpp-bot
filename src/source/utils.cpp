@@ -4,4 +4,6 @@
 
 #include <iostream>
 
+#include "../header/utils.h"
+
 using namespace std;
