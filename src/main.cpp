@@ -11,8 +11,7 @@ using namespace cfg;
 
 int main() {
     string path = "../config.txt";
-    Config config = Config();
+    Config config = Config(path);
 
-    string token = config.getToken(path);
-    cout << token;
+    cout << config.getToken();
 }

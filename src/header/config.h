@@ -13,11 +13,14 @@ namespace cfg {
 
     class Config {
     public:
-        static string getToken() { return token; };
+        Config() = default;
+        Config(string &path);
+
         string getToken(string &path);
 
     private:
         static string token;
+        string path;
     };
 
 } // Cfg

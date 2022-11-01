@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <utility>
 #include "../header/config.h"
 
 using namespace std;
@@ -43,3 +44,5 @@ string Config::getToken(string &path) {
 
     return TOKEN;
 }
+
+Config::Config(string &path) : path(path) {}
