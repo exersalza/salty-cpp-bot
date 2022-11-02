@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <iomanip>
 #include <dpp/dpp.h>
 #include "header/config.h"
 
@@ -27,7 +28,10 @@ int main(int argc, char** argv) {
                 .set_name("High Five")
                 .set_application_id(bot.me.id)
             );
+
+            bot.global_command_create(dpp::slashcommand("ping","Ping pong and Latency check", bot.me.id));
         }
+
     });
 
     bot.on_user_context_menu([&](const dpp::user_context_menu_t& event) {
@@ -38,8 +42,6 @@ int main(int argc, char** argv) {
             event.reply(author.get_mention() + " slapped " + user.get_mention());
         }
     });
-
-
 
     bot.start(dpp::st_wait);
     return 0;
