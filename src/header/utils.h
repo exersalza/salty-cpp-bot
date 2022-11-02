@@ -5,7 +5,7 @@
 #define DCBOT_UTILS_H
 
 namespace u {
-}
+} // u
 
 #endif // DCBOT_UTILS_H
 

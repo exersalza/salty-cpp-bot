@@ -34,11 +34,16 @@ string Config::getToken() {
         return "File can't be open.";
 
     while (!file.eof()) {
-        getline(file, TOKEN);
+        string t;
+        getline(file, t);
 
-        if (++count >= 2 and !TOKEN.empty()) {
+        if (++count >= 2 and !t.empty()) {
             file.close();
             return "Token file can't be longer than 2 lines!";
+        }
+
+        if (!t.empty()) {
+            TOKEN = t;
         }
     }
     file.close();

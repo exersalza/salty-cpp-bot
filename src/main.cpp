@@ -9,29 +9,38 @@
 using namespace std;
 using namespace cfg;
 
-int main() {
+
+int main(int argc, char** argv) {
     string path = "../config.txt";
     Config config = Config(path);
-    string token = config.getToken();
+    const string token = config.getToken();
 
-    dpp::cluster bot(token);
+    dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
 
     bot.on_log(dpp::utility::cout_logger());
-
-    bot.on_slashcommand([](const dpp::slashcommand_t& event) {
-        if (event.command.get_command_name() == "ping") {
-            event.reply("Pong!");
-        }
-    });
 
     bot.on_ready([&bot](const dpp::ready_t& event) {
         if (dpp::run_once<struct register_bot_commands>()) {
             bot.global_command_create(
-                    dpp::slashcommand("ping", "Ping pong!", bot.me.id)
+            dpp::slashcommand()
+                .set_type(dpp::ctxm_user)
+                .set_name("High Five")
+                .set_application_id(bot.me.id)
             );
         }
     });
 
-    bot.start(dpp::st_wait);
+    bot.on_user_context_menu([&](const dpp::user_context_menu_t& event) {
+        if (event.command.get_command_name() == "High Five") {
+            dpp::user user = event.get_user();
+            dpp::user author = event.command.get_issuing_user();
 
+            event.reply(author.get_mention() + " slapped " + user.get_mention());
+        }
+    });
+
+
+
+    bot.start(dpp::st_wait);
+    return 0;
 }
