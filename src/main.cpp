@@ -6,6 +6,9 @@
 #include <iomanip>
 #include <dpp/dpp.h>
 #include "header/config.h"
+#include "header/cogs.h"
+
+// import extern modules from ./cog/*
 
 using namespace std;
 using namespace cfg;
@@ -18,9 +21,14 @@ int main(int argc, char** argv) {
 
     dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
 
+    dpp::cache<dpp::message> message_cache;
+
+
+
+
     bot.on_log(dpp::utility::cout_logger());
 
-    bot.on_ready([&bot](const dpp::ready_t& event) {
+    bot.on_ready([&bot, &argc, &argv](const dpp::ready_t& event) {
         if (dpp::run_once<struct register_bot_commands>()) {
             bot.global_command_create(
             dpp::slashcommand()
@@ -29,7 +37,11 @@ int main(int argc, char** argv) {
                 .set_application_id(bot.me.id)
             );
 
-            bot.global_command_create(dpp::slashcommand("ping","Ping pong and Latency check", bot.me.id));
+            if (argc == 2 and strcmp(argv[1], "--init-commands") != 0) {
+                argc = 0;
+                cog::test(bot);
+                bot.global_command_create(dpp::slashcommand("ping","Ping pong and Latency check", bot.me.id));
+            }
         }
 
     });
