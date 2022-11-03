@@ -10,46 +10,8 @@
 using namespace std;
 using namespace cfg;
 
-bool fileExists (const string& name) {
-    if (FILE *file = fopen(name.c_str(), "r")) {
-        fclose(file);
-        return true;
-    } else {
-        return false;
-    }
-}
-
-string Config::getToken() {
-    fstream file;
-    string TOKEN;
-
-    short count = 0;
-
-    if (!fileExists(path))
-        return "Invalid File";
-
-    file.open(path, ios::in);
-
-    if (!file.is_open())
-        return "File can't be open.";
-
-    while (!file.eof()) {
-        string t;
-        getline(file, t);
-
-        if (++count >= 2 and !t.empty()) {
-            file.close();
-            return "Token file can't be longer than 2 lines!";
-        }
-
-        if (!t.empty()) {
-            TOKEN = t;
-        }
-    }
-    file.close();
-
-    return TOKEN;
-}
-
-
 Config::Config(string &path) : path(path) {}
+
+const string &Config::getPath() const {
+    return path;
+}
