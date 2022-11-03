@@ -5,11 +5,11 @@
 #include <iostream>
 #include <sstream>
 
-#include "../header/utils.h"
+#include "../header/utils.hpp"
 
 using namespace std;
 
-vector<string> u::split(std::string &s, const char& del) {
+vector<string> u::split(std::string &s, const char &del) {
     /** String split into vector with single char delimiter
      *
      * @param s : Give the String to split.
@@ -27,7 +27,7 @@ vector<string> u::split(std::string &s, const char& del) {
     return ret;
 }
 
-vector<string> u::split(std::string &s, const std::string& del) {
+vector<string> u::split(std::string &s, const std::string &del) {
     /** String split into vector with multi char delimiter
      *
      * @param s : Give the String to split.
@@ -47,4 +47,13 @@ vector<string> u::split(std::string &s, const std::string& del) {
 
     ret.push_back(s.substr(pos_start));
     return ret;
+}
+
+bool u::fileExists(const string &name) {
+    if (FILE *file = fopen(name.c_str(), "r")) {
+        fclose(file);
+        return true;
+    } else {
+        return false;
+    }
 }
