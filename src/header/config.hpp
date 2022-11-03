@@ -2,8 +2,8 @@
 // Created by julian on 29.10.22.
 //
 
-#ifndef DCBOT_CONFIG_H
-#define DCBOT_CONFIG_H
+#ifndef DCBOT_CONFIG_HPP
+#define DCBOT_CONFIG_HPP
 
 #include <string>
 
@@ -16,7 +16,8 @@ namespace cfg {
         Config() = default;
         explicit Config(string &path);
 
-        string getToken();
+        [[nodiscard]] const string &getToken() const;
+
 
     private:
         string token;
@@ -25,4 +26,4 @@ namespace cfg {
 
 } // Cfg
 
-#endif //DCBOT_CONFIG_H
+#endif //DCBOT_CONFIG_HPP
