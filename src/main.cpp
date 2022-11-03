@@ -5,8 +5,10 @@
 #include <iostream>
 #include <iomanip>
 #include <dpp/dpp.h>
+#include <fmt/format.h>
 #include "header/config.h"
 #include "header/cogs.h"
+#include "header/utils.h"
 
 // import extern modules from ./cog/*
 
@@ -21,9 +23,7 @@ int main(int argc, char** argv) {
 
     dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
 
-    dpp::cache<dpp::message> message_cache;
-
-
+    dpp::cache<dpp::message> bot_message_cache;
 
 
     bot.on_log(dpp::utility::cout_logger());
@@ -46,6 +46,30 @@ int main(int argc, char** argv) {
 
     });
 
+    bot.on_message_create([&](const dpp::message_create_t& event) {
+       auto* msg = new dpp::message();
+
+       *msg = event.msg;
+
+       bot_message_cache.store(msg);
+
+       stringstream ss(event.msg.content);
+       string cmd;
+       dpp::snowflake msg_id;
+       ss >> cmd;
+
+       if (cmd == "!get") {
+           ss >> msg_id;
+           dpp::message* find_msg = bot_message_cache.find(msg_id);
+
+           if ( find_msg != nullptr ) {
+               bot.message_create(dpp::message(event.msg.channel_id, "The content was: " + find_msg->content));
+           } else {
+               bot.message_create(dpp::message(event.msg.channel_id, "No message was found."));
+           }
+       }
+    });
+
     bot.on_user_context_menu([&](const dpp::user_context_menu_t& event) {
         if (event.command.get_command_name() == "High Five") {
             dpp::user user = event.get_user();
@@ -55,6 +79,20 @@ int main(int argc, char** argv) {
         }
     });
 
-    bot.start(dpp::st_wait);
+    bot.on_interaction_create([&bot](const dpp::interaction_create_t& event) {
+
+    });
+
+    while (true) {
+        try {
+            bot.start(false);
+
+        } catch (std::exception e) {
+            bot.log(dpp::ll_error, fmt::format("Oh shit, not good {}", e.what()));
+        }
+
+        ::sleep(30);
+    }
+
     return 0;
 }
