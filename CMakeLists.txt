@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 #[[add_subdirectory(flibs/DPP)]]
 
-add_executable(dcbot src/main.cpp src/header/config.h src/source/config.cpp src/source/utils.cpp src/header/cogs.h src/cogs/adminCog.cpp)
+add_executable(dcbot src/main.cpp src/header/config.h src/source/config.cpp src/source/utils.cpp src/header/cogs.h src/cogs/adminCog.cpp src/cogs/economyCog.cpp)
 include_directories(${Dpp_INCLUDE_DIRS})
 
 find_package(fmt REQUIRED)
