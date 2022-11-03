@@ -8,7 +8,9 @@ set(CMAKE_CXX_STANDARD 20)
 add_executable(dcbot src/main.cpp src/header/config.h src/source/config.cpp src/source/utils.cpp src/header/cogs.h src/cogs/adminCog.cpp)
 include_directories(${Dpp_INCLUDE_DIRS})
 
-target_link_libraries(${PROJECT_NAME} dpp)
+find_package(fmt REQUIRED)
+
+target_link_libraries(${PROJECT_NAME} dpp fmt)
 target_include_directories(${PROJECT_NAME} PRIVATE
         #[[flibs/DPP/include]]
         )
