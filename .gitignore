@@ -36,3 +36,4 @@ flibs/
 config.*
 .idea/
 build/
+!config.hpp
