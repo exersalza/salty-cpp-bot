@@ -6,27 +6,37 @@
 #define DCBOT_COGS_HPP
 
 #include <dpp/dpp.h>
+#include <nlohmann/json.hpp>
 #include <vector>
 #include <string>
 
 using namespace std;
 
 namespace cog {
-    void regis_commands(dpp::cluster& bot);
+    void regis_commands(dpp::cluster &bot);
 } // cog
 
 namespace economy {
     class Shop {
     public:
-        Shop(string& name);
+        explicit Shop(string &index);
 
-        string get_name();
-        string get_itemc();
+    public:
+        const string &getIndex() const;
+        const string &getDispName() const;
+        const string &getDesc() const;
+        const json &getItems() const;
+
+        void setDispName(const string &dispName);
+        void setDesc(const string &desc);
+        void setItems(const json &items);
 
     private:
-        string name;
-        double itemc;
-        
+        string index;
+        string disp_name;
+        string desc;
+        json items;
+
     };
 
     class Economy {
