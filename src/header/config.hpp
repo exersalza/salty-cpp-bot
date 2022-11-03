@@ -14,6 +14,7 @@ namespace cfg {
     class Config {
     public:
         Config() = default;
+
         explicit Config(string &path);
 
         [[nodiscard]] const string &getToken() const;

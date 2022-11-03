@@ -2,16 +2,22 @@
 // Created by julian on 29.10.22.
 //
 
-#include <iostream>
+#include "../header/config.hpp"
+#include <nlohmann/json.hpp>
 #include <fstream>
-#include <utility>
-#include "../header/config.h"
 
 using namespace std;
-using namespace cfg;
 
-Config::Config(string &path) : path(path) {}
+using json = nlohmann::json;
 
-const string &Config::getPath() const {
-    return path;
+
+cfg::Config::Config(string &path) : path(path) {
+    fstream f(path);
+    json data = json::parse(f);
+
+    token = data["token"];
+}
+
+const string &cfg::Config::getToken() const {
+    return token;
 }
