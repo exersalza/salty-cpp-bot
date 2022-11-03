@@ -5,11 +5,6 @@
 #include <dpp/dpp.h>
 #include "../header/cogs.h"
 
-void cog::test(dpp::cluster& bot) {
-    bot.on_message_create([&bot](const dpp::message_create_t& event) {
-        if (event.msg.content == "!melm") {
-            bot.message_create(dpp::message(event.msg.channel_id, "POGGERS")
-                                                .set_reference(event.msg.id));
-        }
-    });
+void cog::regis_commands(dpp::cluster& bot) {
+    bot.global_command_create(dpp::slashcommand("ping","Ping pong and Latency check", bot.me.id));
 }
