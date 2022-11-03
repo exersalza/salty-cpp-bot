@@ -39,8 +39,7 @@ int main(int argc, char** argv) {
 
             if (argc == 2 and strcmp(argv[1], "--init-commands") != 0) {
                 argc = 0;
-                cog::test(bot);
-                bot.global_command_create(dpp::slashcommand("ping","Ping pong and Latency check", bot.me.id));
+                cog::regis_commands(bot);
             }
         }
 
@@ -86,6 +85,7 @@ int main(int argc, char** argv) {
     while (true) {
         try {
             bot.start(false);
+            bot.log(dpp::ll_debug, "started");
 
         } catch (std::exception e) {
             bot.log(dpp::ll_error, fmt::format("Oh shit, not good {}", e.what()));
