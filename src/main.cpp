@@ -6,9 +6,10 @@
 #include <iomanip>
 #include <dpp/dpp.h>
 #include <fmt/format.h>
-#include "header/config.hpp"
-#include "header/cogs.hpp"
-#include "header/utils.hpp"
+#include "include/config.hpp"
+#include "include/cogs.hpp"
+#include "include/utils.hpp"
+#include "include/economyCogs.hpp"
 
 // import extern modules from ./cog/*
 
@@ -24,8 +25,8 @@ int main(int argc, char **argv) {
     dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
 
     dpp::cache<dpp::message> bot_message_cache;
-
-    economy::Shop shop((string &) "test");
+    string shop_name = "test";
+    economy::Shop shop(shop_name);
 
 
     bot.on_log(dpp::utility::cout_logger());
@@ -47,6 +48,12 @@ int main(int argc, char **argv) {
 
     });
 
+    bot.on_button_click([&bot](const dpp::button_click_t &event) {
+        event.reply();
+
+        bot.message_create(dpp::message(event.command.channel_id, "Button " + event.custom_id + "clickd"));
+    });
+
     bot.on_message_create([&](const dpp::message_create_t &event) {
         auto *msg = new dpp::message();
 
@@ -61,7 +68,9 @@ int main(int argc, char **argv) {
 
         if (cmd == "!get") {
             ss >> msg_id;
-            dpp::message *find_msg = bot_message_cache.find(msg_id);
+            dpp::message *find_msg = bot_message_cache.find(event.msg.id);
+            dpp::message m = shop.createEmbed(event.msg.channel_id);
+            bot.message_create(m);
 
             if (find_msg != nullptr) {
                 bot.message_create(dpp::message(event.msg.channel_id, "The content was: " + find_msg->content));
@@ -84,7 +93,7 @@ int main(int argc, char **argv) {
 
     });
 
-    /*while (true) {
+    while (true) {
         try {
             bot.start(false);
             bot.log(dpp::ll_debug, "started");
@@ -94,7 +103,7 @@ int main(int argc, char **argv) {
         }
 
         ::sleep(30);
-    }*/
+    }
 
     return 0;
 }

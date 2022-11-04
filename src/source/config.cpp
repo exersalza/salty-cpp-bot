@@ -2,7 +2,7 @@
 // Created by julian on 29.10.22.
 //
 
-#include "../header/config.hpp"
+#include "../include/config.hpp"
 #include <nlohmann/json.hpp>
 #include <fstream>
 

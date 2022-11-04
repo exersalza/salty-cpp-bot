@@ -3,7 +3,7 @@
 //
 
 #include <dpp/dpp.h>
-#include "../header/cogs.hpp"
+#include "../../include/cogs.hpp"
 
 void cog::regis_commands(dpp::cluster &bot) {
     bot.global_command_create(dpp::slashcommand("ping", "Ping pong and Latency check", bot.me.id));
