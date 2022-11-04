@@ -2,6 +2,7 @@
   "test": {
     "disp_name": "Coggers69420 weed Shop",
     "desc": "it's green grass in your backyard",
+    "color": "",
     "items": {
       "brownies": {
         "desc": "brownies from the granny",
