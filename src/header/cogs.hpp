@@ -19,9 +19,9 @@ namespace cog {
 namespace economy {
     class Shop {
     public:
+        /// \param index : Give the Shop name to init from shopConfig.json
         explicit Shop(string &index);
 
-    public:
         const string &getIndex() const;
         const string &getDispName() const;
         const string &getDesc() const;
@@ -36,12 +36,11 @@ namespace economy {
         string disp_name;
         string desc;
         json items;
-
     };
 
     class Economy {
     public:
-        auto get_shops();
+        vector<Shop> getShops();
 
     private:
         vector<Shop> shops;
