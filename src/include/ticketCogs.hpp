@@ -36,11 +36,10 @@
 namespace ticket {
     class Ticket {
     public:
-        Ticket(dpp::cluster &bot);
+        void initCommands(auto &bot);
 
-    private:
-        dpp::cluster bot;
     };
+
 } // ticket
 
 

@@ -10,6 +10,7 @@
 #include "include/cogs.hpp"
 #include "include/utils.hpp"
 #include "include/economyCogs.hpp"
+#include "include/ticketCogs.hpp"
 
 // import extern modules from ./cog/*
 
@@ -27,6 +28,8 @@ int main(int argc, char **argv) {
     dpp::cache<dpp::message> bot_message_cache;
     string shop_name = "test";
     economy::Shop shop(shop_name);
+    ticket::Ticket ticket;
+    ticket.initCommands(bot);
 
 
     bot.on_log(dpp::utility::cout_logger());
