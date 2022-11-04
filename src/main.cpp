@@ -28,8 +28,6 @@ int main(int argc, char **argv) {
     dpp::cache<dpp::message> bot_message_cache;
     string shop_name = "test";
     economy::Shop shop(shop_name);
-    ticket::Ticket ticket;
-    ticket.initCommands(bot);
 
 
     bot.on_log(dpp::utility::cout_logger());
@@ -46,6 +44,7 @@ int main(int argc, char **argv) {
             if (argc == 2 and strcmp(argv[1], "--init-commands") != 0) {
                 argc = 0;
                 cog::regis_commands(bot);
+                ticket::init_commands(bot);
             }
         }
 
@@ -92,8 +91,22 @@ int main(int argc, char **argv) {
         }
     });
 
-    bot.on_interaction_create([&bot](const dpp::interaction_create_t &event) {
+    bot.on_slashcommand([&bot](const dpp::slashcommand_t & event) {
+        dpp::interaction interaction = event.command;
+        dpp::command_interaction cmd_data = interaction.get_command_interaction();
+        event.reply();
 
+        if (interaction.get_command_name() == "ticket") {
+            auto sc = cmd_data.options[0];
+//            dpp::command_data_option::get
+            if (sc.name == "create") {
+                if (!sc.options.empty()) {
+                    bot.message_create(dpp::message(sc.get_value<dpp::snowflake>(0), "cog"));
+                } else {
+
+                }
+            }
+        }
     });
 
     while (true) {

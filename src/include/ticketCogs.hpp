@@ -34,11 +34,7 @@
  * */
 
 namespace ticket {
-    class Ticket {
-    public:
-        void initCommands(auto &bot);
-
-    };
+    void init_commands(dpp::cluster &bot);
 
 } // ticket
 

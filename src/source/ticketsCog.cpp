@@ -3,15 +3,15 @@
 //
 
 #include <dpp/dpp.h>
-#include "../../include/ticketCogs.hpp"
+#include "../include/ticketCogs.hpp"
 
 
-void ticket::Ticket::initCommands(auto &bot) {
+void ticket::init_commands(dpp::cluster &bot) {
     dpp::slashcommand ticket("ticket", "ticket base command", bot.me.id);
 
     ticket.add_option(
-            dpp::command_option(dpp::co_sub_command, "dog", "Send a picture of a dog.").
-                    add_option(dpp::command_option(dpp::co_user, "user", "User to turn into a dog.", false))
+        dpp::command_option(dpp::co_sub_command, "create", "Create Ticket message at current/given channel.").
+                add_option(dpp::command_option(dpp::co_channel, "channel", "Define channel", false))
 
     );
 

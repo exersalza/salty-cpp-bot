@@ -5,8 +5,8 @@
 #include <string>
 #include <nlohmann/json.hpp>
 
-#include "../../include/cogs.hpp"
-#include "../../include/economyCogs.hpp"
+#include "../include/cogs.hpp"
+#include "../include/economyCogs.hpp"
 
 using json = nlohmann::json;
 
