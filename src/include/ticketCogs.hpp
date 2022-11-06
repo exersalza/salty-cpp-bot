@@ -18,7 +18,7 @@
  *      <> -> optional arguments
  *      <<>> -> default argument
  *      [] -> mandatory arguments
- *      | -> to do combiner
+ *      | -> to do combiner (for those that don't use intellij based ide's, they dont recognize to do's as one, when there not merged)
  *  Global command: ticket
  *  Sub-commands:
  *      create -> create init ticket message, enable ticket system
