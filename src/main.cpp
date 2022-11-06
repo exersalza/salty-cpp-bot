@@ -4,15 +4,16 @@
 
 #include <iostream>
 #include <iomanip>
+#include <regex>
 #include <dpp/dpp.h>
 #include <fmt/format.h>
+
 #include "include/config.hpp"
 #include "include/cogs.hpp"
 #include "include/utils.hpp"
 #include "include/economyCogs.hpp"
 #include "include/ticketCogs.hpp"
 
-// import extern modules from ./cog/*
 
 using namespace std;
 using namespace cfg;
@@ -56,32 +57,6 @@ int main(int argc, char **argv) {
         bot.message_create(dpp::message(event.command.channel_id, "Button " + event.custom_id + "clickd"));
     });
 
-    bot.on_message_create([&](const dpp::message_create_t &event) {
-        auto *msg = new dpp::message();
-
-        *msg = event.msg;
-
-        bot_message_cache.store(msg);
-
-        stringstream ss(event.msg.content);
-        string cmd;
-        dpp::snowflake msg_id;
-        ss >> cmd;
-
-        if (cmd == "!get") {
-            ss >> msg_id;
-            dpp::message *find_msg = bot_message_cache.find(event.msg.id);
-            dpp::message m = shop.createEmbed(event.msg.channel_id);
-            bot.message_create(m);
-
-            if (find_msg != nullptr) {
-                bot.message_create(dpp::message(event.msg.channel_id, "The content was: " + find_msg->content));
-            } else {
-                bot.message_create(dpp::message(event.msg.channel_id, "No message was found."));
-            }
-        }
-    });
-
     bot.on_user_context_menu([&](const dpp::user_context_menu_t &event) {
         if (event.command.get_command_name() == "High Five") {
             dpp::user user = event.get_user();
@@ -94,18 +69,34 @@ int main(int argc, char **argv) {
     bot.on_slashcommand([&bot](const dpp::slashcommand_t & event) {
         dpp::interaction interaction = event.command;
         dpp::command_interaction cmd_data = interaction.get_command_interaction();
-        event.reply();
 
         if (interaction.get_command_name() == "ticket") {
             auto sc = cmd_data.options[0];
-//            dpp::command_data_option::get
-            if (sc.name == "create") {
-                if (!sc.options.empty()) {
-                    bot.message_create(dpp::message(sc.get_value<dpp::snowflake>(0), "cog"));
-                } else {
 
+            dpp::embed em;
+            dpp::guild guild = event.command.get_guild();
+            string guild_icon = guild.get_icon_url();
+
+
+            if (sc.name == "create") {
+                guild_icon = std::regex_replace(
+                                std::regex_replace(guild_icon, std::regex("jpg"), ".jpg"),
+                                                                        std::regex("png"), ".png");
+
+                em.set_color(0xbc3440);
+                em.set_author(fmt::format("{0}'s ticket system.", guild.name), guild_icon, guild_icon);
+                em.set_description("Create a ticket!");
+
+
+                if (!sc.options.empty()) {
+                    size_t channel_id = sc.get_value<dpp::snowflake>(0);
+                    bot.message_create(ticket::create_ticket_message(channel_id, em));
+                } else {
+                    size_t channel_id = event.command.channel_id;
+                    bot.message_create(ticket::create_ticket_message(channel_id, em));
                 }
             }
+            event.reply("Ticket message got created.");
         }
     });
 

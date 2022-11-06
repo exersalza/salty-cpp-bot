@@ -23,18 +23,20 @@
  *  Sub-commands:
  *      create -> create init ticket message, enable ticket system
  *      set -> sets channel group for tickets
- *      ? change -> change settings
+ *      ? config -> change settings
  *      disable -> disable ticket system for server, gets re-enabled with create
  *      |
  *  Command Usage:
  *   /ticket create <CHANNEL_ID/<current_channel>>
  *   /ticket set [CATEGORY_ID]
+ *   /ticket config
  *   /ticket disable/enable
  *
  * */
 
 namespace ticket {
     void init_commands(dpp::cluster &bot);
+    dpp::message create_ticket_message(size_t &channel_id, dpp::embed &embed);
 
 } // ticket
 
