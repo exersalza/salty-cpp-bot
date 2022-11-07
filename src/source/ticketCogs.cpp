@@ -6,7 +6,7 @@
 #include "../include/ticketCogs.hpp"
 
 
-void ticket::init_commands(dpp::cluster &bot) {
+void ticket::init_ticket_commands(dpp::cluster &bot) {
     dpp::slashcommand ticket("ticket", "ticket base command", bot.me.id);
     ticket.set_default_permissions(dpp::permission(dpp::p_administrator));
 

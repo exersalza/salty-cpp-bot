@@ -19,8 +19,15 @@ namespace cfg {
 
         [[nodiscard]] const string &getToken() const;
 
+        // SQL
+        char* sql_host;
+        char* sql_user;
+        char* sql_password;
+        char* sql_db;
+
 
     private:
+        // Base bot config
         string token;
         string path;
     };

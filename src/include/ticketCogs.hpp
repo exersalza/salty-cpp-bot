@@ -35,7 +35,7 @@
  * */
 
 namespace ticket {
-    void init_commands(dpp::cluster &bot);
+    void init_ticket_commands(dpp::cluster &bot);
     dpp::message create_ticket_message(size_t &channel_id, dpp::embed &embed);
 
 } // ticket
