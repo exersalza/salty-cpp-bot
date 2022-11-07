@@ -3,8 +3,8 @@
 echo "Creating dirs"
 
 mkdir -p "${PWD}/src/source"
-mkdir -p "${PWD}/src/header"
-mkdir -p "${PWD}/src/res"
+mkdir -p "${PWD}/src/include"
+mkdir -p "${PWD}/src/resources"
 
 echo "Creating files"
 
@@ -28,6 +28,9 @@ set(CMAKE_CXX_STANDARD 20)
 add_executable(PROJECT_NAME src/main.cpp)
 include_directories(${Dpp_INCLUDE_DIRS})
 
-target_link_libraries(\${PROJECT_NAME} dpp)
+find_package(fmt REQUIRED)
+find_package(nlohmann_json 3.2.0 REQUIRED)
+
+target_link_libraries(\${PROJECT_NAME} dpp fmt nlohmann::nlohmann)
 target_include_directories(\${PROJECT_NAME} PRIVATE)
 EOM
