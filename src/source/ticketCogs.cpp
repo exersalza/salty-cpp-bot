@@ -75,7 +75,7 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c) {
                    throw err;
                }
 
-               dpp::channel t = confm.get<dpp::channel>();
+               auto t = confm.get<dpp::channel>();
 
                event.reply(fmt::format("Ticket got created {0}", t.get_mention()));
            });
