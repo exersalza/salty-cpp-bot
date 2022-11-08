@@ -8,9 +8,4 @@
 #include <dpp/dpp.h>
 #include <mysql++/mysql++.h>
 
-void ticket_commands(dpp::cluster &bot,
-                     const dpp::slashcommand_t &event,
-                     const dpp::command_interaction &cmd_data,
-                     mysqlpp::Connection connection);
-
 #endif //DCBOT_MAIN_HPP

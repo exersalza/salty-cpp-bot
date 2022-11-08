@@ -20,10 +20,10 @@ namespace cfg {
         [[nodiscard]] const string &getToken() const;
 
         // SQL
-        char* sql_host;
-        char* sql_user;
-        char* sql_password;
-        char* sql_db;
+        char sql_host[11] = "localhost";
+        char sql_user[6] = "local";
+        char sql_password[1] = "";
+        char sql_db[14] = "salty_cpp_bot";
 
 
     private:

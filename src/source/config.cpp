@@ -18,21 +18,6 @@ cfg::Config::Config(string &path) : path(path) {
     json data = json::parse(f);
 
     token = data["token"];
-
-    // convert string to char[]
-
-    vector<string> sql_data = {
-            "host", "user", "password", "db"
-    };
-
-    vector<char *> test = {
-            sql_host, sql_user, sql_db, sql_password
-    };
-
-    cout << test[1] << endl;
-    cout << "f" << endl;
-
-
 }
 
 const string &cfg::Config::getToken() const {
