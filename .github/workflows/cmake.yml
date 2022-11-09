@@ -22,8 +22,10 @@ jobs:
     
     - name: Install stuff
       run: sudo apt-get update && sudo apt upgrade |
-           sudo apt-get install libfmt-dev |
-           sudo apt-get install wget |
+           sudo apt-get install libfmt-dev 
+           
+    - name: Install dpp
+      run: sudo apt-get install wget |
            wget -O dpp.deb https://dl.dpp.dev/ |
            sudo dpkg dpp.deb
 
