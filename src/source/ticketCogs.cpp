@@ -3,18 +3,14 @@
 // When you pour water on a rock, nothing happens.
 
 #include <regex>
-#include <iomanip>
 #include <iostream>
 #include <dpp/dpp.h>
 #include <fmt/format.h>
 
+#include "../include/utils.hpp"
 #include "../include/ticketCogs.hpp"
 
 using namespace std;
-
-void test(dpp::confirmation_callback_t e) {
-
-}
 
 void ticket::init_ticket_commands(dpp::cluster &bot) {
     bot.log(dpp::ll_debug, "Initializing 'ticket_commands'");
@@ -51,6 +47,10 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c) {
 
     bot.on_button_click([&bot, &c](const dpp::button_click_t &event) {
         if (event.custom_id == "ticket_create") {
+            // start thinking and then decide what happens later, don't let user wait
+            // it's like a traffic light, you wait 2 seconds and everyone is mad at you.
+            event.thinking(true);
+
             dpp::channel channel;
             size_t category_id;
             string channel_mention;
@@ -67,6 +67,8 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c) {
             category_id = res[0]["category_id"];
             ticket_id = res[0]["count"];
 
+            u::kill_query(query);
+
 
             channel.set_name(fmt::format("ticket-{0}", ticket_id + 1))
                     .set_type(dpp::channel_type::CHANNEL_TEXT)
@@ -76,13 +78,20 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c) {
             bot.channel_create(channel, [&, event](const dpp::confirmation_callback_t &confm) {
                 if (confm.is_error()) {
                     string err = confm.get_error().message;
+                    event.edit_original_response(
+                            dpp::message(
+                                    "Something went wrong, please try again later, or contact an Moderator.")
+                                    .set_flags(dpp::m_ephemeral));
+
                     bot.log(dpp::ll_error, fmt::format("FUCK Somethin went wron {}", err));
                     throw err;
                 }
 
                 auto t = confm.get<dpp::channel>();
 
-                event.reply(fmt::format("Ticket got created {0}", t.get_mention()));
+                event.edit_original_response(dpp::message(
+                        fmt::format("Ticket got created {0}", t.get_mention())
+                ).set_flags(dpp::m_ephemeral));
             });
 
         }

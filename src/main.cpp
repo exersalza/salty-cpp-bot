@@ -40,23 +40,6 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    size_t category_id;
-    int ticket_id;
-
-
-    mysqlpp::Query query = conn.query();
-
-    query << fmt::format("SELECT ticket.category_id, ticket.count FROM ticket WHERE ticket.server_id = '{0}'; "
-              "UPDATE salty_cpp_bot.ticket SET count=count + 1 WHERE ticket.server_id = '{0}'", 762815486823891014);
-
-    /*category_id = query.store()[0]["category_id"];
-    ticket_id = query.store()[0]["count"];*/
-
-    mysqlpp::StoreQueryResult res = query.store();
-    cout << res[0]["count"] << endl;
-
-
-    return 0;
     dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
 
     dpp::cache<dpp::message> bot_message_cache;
@@ -69,7 +52,7 @@ int main(int argc, char *argv[]) {
         if (dpp::run_once<struct register_bot_commands>()) {
             if (argc == 2 and strcmp(argv[1], "--init-commands") != 0) {
 
-                thread ping_loop1([&conn, &bot, &config]() {
+                /*thread ping_loop1([&conn, &bot, &config]() {
                     bot.log(dpp::ll_debug, "event_loop 'ping_loop1' started.");
                     while (true) {
                         if (!conn.ping()) {
@@ -82,9 +65,9 @@ int main(int argc, char *argv[]) {
                         }
                         sleep(60 * 60 * 1);
                     }
-                });
+                });*/
 
-                ping_loop1.detach();
+                /*ping_loop1.detach();*/
                 argc = 0;
 
                 cog::regis_commands(bot);

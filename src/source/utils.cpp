@@ -57,3 +57,19 @@ bool u::fileExists(const string &name) {
         return false;
     }
 }
+
+int u::kill_query(mysqlpp::Query &query) {
+    /** Kills query to prevent 'command out of sync' error
+     *
+     * @param query : the query to kill.
+     *
+     * @returns int
+     * **/
+
+    try {
+        for (int i = 0; query.more_results(); ++i) { query.store_next(); }
+    } catch (std::exception e) {
+        return 1;
+    }
+    return 0;
+}
