@@ -17,14 +17,21 @@ namespace economy {
         explicit Shop(std::string &index);
 
         const std::string &getIndex() const;
+
         const std::string &getDispName() const;
+
         const std::string &getDesc() const;
+
         const json &getItems() const;
+
         const std::string &getColor() const;
 
         void setDispName(const std::string &dispName);
+
         void setDesc(const std::string &desc);
+
         void setItems(const json &items);
+
         void setColor(const std::string &color);
 
         dpp::message createEmbed(std::size_t channel_id);

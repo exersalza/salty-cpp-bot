@@ -11,9 +11,9 @@ void cog::regis_commands(dpp::cluster &bot) {
     bot.global_command_create(dpp::slashcommand("ping", "Ping pong and Latency check", bot.me.id));
 
     bot.global_command_create(
-                        dpp::slashcommand()
-                                .set_type(dpp::ctxm_user)
-                                .set_name("High Five")
-                                .set_application_id(bot.me.id)
-                        );
+            dpp::slashcommand()
+                    .set_type(dpp::ctxm_user)
+                    .set_name("High Five")
+                    .set_application_id(bot.me.id)
+    );
 }

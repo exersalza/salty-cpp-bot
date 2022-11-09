@@ -33,24 +33,21 @@ dpp::message economy::Shop::createEmbed(const size_t channel_id) {
     uint32_t col = std::stoul(color, nullptr, 16);
 
     embed.set_author(getDispName(), "", "attachment://kermit.jpg")
-         .set_color(col);
+            .set_color(col);
     dpp::message m(channel_id, embed);
 
     m.add_file("kermit.jpg", dpp::utility::read_file("resources/pic/kermit.jpg"));
 
     m.add_component(
-        dpp::component().add_component(dpp::component()
-                                            .set_label("Exit")
-                                            .set_type(dpp::cot_button)
-                                            .set_style(dpp::cos_danger)
-                                            .set_id("exit"))
+            dpp::component().add_component(dpp::component()
+                                                   .set_label("Exit")
+                                                   .set_type(dpp::cot_button)
+                                                   .set_style(dpp::cos_danger)
+                                                   .set_id("exit"))
     );
 
     return m;
 }
-
-
-
 
 
 vector<economy::Shop> economy::Economy::getShops() {
