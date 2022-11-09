@@ -21,9 +21,7 @@ using namespace std;
 using namespace cfg;
 
 
-
 int main(int argc, char *argv[]) {
-
     // Normal config shit
     string path = "../config.json";
     Config config = Config(path);
@@ -31,16 +29,34 @@ int main(int argc, char *argv[]) {
 
     // SQL Shit
     mysqlpp::Connection conn;
+    conn.set_option(new mysqlpp::MultiStatementsOption(true));
+
     conn.connect(config.sql_db, config.sql_host,
                  config.sql_user, config.sql_password);
 
-    conn.set_option(new mysqlpp::MultiStatementsOption(true));
 
     if (!conn.connected()) {
         cout << "Couldn't connect to db..." << endl;
         return -1;
     }
 
+    size_t category_id;
+    int ticket_id;
+
+
+    mysqlpp::Query query = conn.query();
+
+    query << fmt::format("SELECT ticket.category_id, ticket.count FROM ticket WHERE ticket.server_id = '{0}'; "
+              "UPDATE salty_cpp_bot.ticket SET count=count + 1 WHERE ticket.server_id = '{0}'", 762815486823891014);
+
+    /*category_id = query.store()[0]["category_id"];
+    ticket_id = query.store()[0]["count"];*/
+
+    mysqlpp::StoreQueryResult res = query.store();
+    cout << res[0]["count"] << endl;
+
+
+    return 0;
     dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
 
     dpp::cache<dpp::message> bot_message_cache;
@@ -60,7 +76,7 @@ int main(int argc, char *argv[]) {
                             bot.log(dpp::ll_error, "Ping to db failed, tryn to reconnect.");
 
                             conn.connect(config.sql_db, config.sql_host,
-                                             config.sql_user, config.sql_password);
+                                         config.sql_user, config.sql_password);
                             sleep(30);
                             continue;
                         }
@@ -102,7 +118,7 @@ int main(int argc, char *argv[]) {
 
             event.edit_response(dpp::message(
                     fmt::format("I'm still alive. Latency: {0:.02f}ms", (bot.rest_ping + ws_ping) * 1000))
-                                .set_flags(dpp::m_ephemeral));
+                                        .set_flags(dpp::m_ephemeral));
         }
     });
 

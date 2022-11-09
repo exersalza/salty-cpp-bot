@@ -24,13 +24,13 @@ void ticket::init_ticket_commands(dpp::cluster &bot) {
     ticket.set_default_permissions(dpp::permission(dpp::p_administrator));
 
     ticket.add_option(
-        dpp::command_option(dpp::co_sub_command, "create", "Create Ticket message at current/given channel.").
-                add_option(dpp::command_option(dpp::co_channel, "channel", "Define channel", false))
+            dpp::command_option(dpp::co_sub_command, "create", "Create Ticket message at current/given channel.").
+                    add_option(dpp::command_option(dpp::co_channel, "channel", "Define channel", false))
     );
 
     ticket.add_option(
-        dpp::command_option(dpp::co_sub_command, "set", "Set category for new tickets.").
-                add_option(dpp::command_option(dpp::co_channel, "category", "Define category", true))
+            dpp::command_option(dpp::co_sub_command, "set", "Set category for new tickets.").
+                    add_option(dpp::command_option(dpp::co_channel, "category", "Define category", true))
     );
 
     bot.global_command_create(ticket);
@@ -40,53 +40,58 @@ void ticket::init_ticket_commands(dpp::cluster &bot) {
 dpp::message ticket::create_ticket_message(size_t &channel_id, dpp::embed &embed) {
     return dpp::message(channel_id, embed)
             .add_component(dpp::component().add_component(dpp::component()
-                                      .set_label("Create!")
-                                      .set_type(dpp::cot_button)
-                                      .set_emoji("📝")
-                                      .set_id("ticket_create")));
+                                                                  .set_label("Create!")
+                                                                  .set_type(dpp::cot_button)
+                                                                  .set_emoji("📝")
+                                                                  .set_id("ticket_create")));
 }
 
 void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c) {
     bot.log(dpp::ll_debug, "Initializing 'ticket_events'");
 
     bot.on_button_click([&bot, &c](const dpp::button_click_t &event) {
-       if (event.custom_id == "ticket_create") {
-           dpp::channel channel;
-           size_t category_id;
-           string channel_mention;
-           dpp::user user = event.command.usr;
-           size_t guild_id = event.command.guild_id;
+        if (event.custom_id == "ticket_create") {
+            dpp::channel channel;
+            size_t category_id;
+            string channel_mention;
+            dpp::user user = event.command.usr;
+            int ticket_id;
 
-           mysqlpp::Query query = c.query(
-                   fmt::format("SELECT ticket.category_id FROM ticket WHERE ticket.server_id = '{0}'",
-                                                      event.command.guild_id));
+            mysqlpp::Query query = c.query();
+            query << fmt::format("SELECT ticket.category_id, ticket.count FROM ticket WHERE ticket.server_id = '{0}'; "
+              "UPDATE salty_cpp_bot.ticket SET count=count + 1 WHERE ticket.server_id = '{0}'", event.command.guild_id);
 
-           category_id = query.store()[0]["category_id"];
 
-           channel.set_name(fmt::format("ticket-{0}", "test"))
-                  .set_type(dpp::channel_type::CHANNEL_TEXT)
-                  .set_guild_id(event.command.guild_id)
-                  .set_parent_id(category_id);
+            mysqlpp::StoreQueryResult res = query.store();
 
-           bot.channel_create(channel, [&, event](const dpp::confirmation_callback_t &confm) {
-               if (confm.is_error()) {
-                   string err = confm.get_error().message;
-                   bot.log(dpp::ll_error, fmt::format("Somethin went wron {}", err));
-                   throw err;
-               }
+            category_id = res[0]["category_id"];
+            ticket_id = res[0]["count"];
 
-               auto t = confm.get<dpp::channel>();
 
-               event.reply(fmt::format("Ticket got created {0}", t.get_mention()));
-           });
+            channel.set_name(fmt::format("ticket-{0}", ticket_id + 1))
+                    .set_type(dpp::channel_type::CHANNEL_TEXT)
+                    .set_guild_id(event.command.guild_id)
+                    .set_parent_id(category_id);
 
-       }
+            bot.channel_create(channel, [&, event](const dpp::confirmation_callback_t &confm) {
+                if (confm.is_error()) {
+                    string err = confm.get_error().message;
+                    bot.log(dpp::ll_error, fmt::format("FUCK Somethin went wron {}", err));
+                    throw err;
+                }
+
+                auto t = confm.get<dpp::channel>();
+
+                event.reply(fmt::format("Ticket got created {0}", t.get_mention()));
+            });
+
+        }
     });
 }
 
 void ticket::ticket_commands(dpp::cluster &bot,
-                const dpp::slashcommand_t &event,
-                const dpp::command_interaction &cmd_data) {
+                             const dpp::slashcommand_t &event,
+                             const dpp::command_interaction &cmd_data) {
 
     auto sc = cmd_data.options[0];
 
