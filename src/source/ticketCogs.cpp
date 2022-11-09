@@ -77,6 +77,13 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c) {
                     .set_guild_id(event.command.guild_id)
                     .set_parent_id(category_id);
 
+
+            channel.set_lock_permissions(true);
+
+            channel.add_permission_overwrite(event.command.usr.id, dpp::overwrite_type::ot_member,
+                                            dpp::permissions::p_send_messages |
+                                            dpp::permissions::p_view_channel, 0);
+
             bot.channel_create(channel, [&, event, notify_id](const dpp::confirmation_callback_t &confm) {
                 if (confm.is_error()) {
                     string err = confm.get_error().message;
@@ -99,7 +106,8 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c) {
 
                 em.set_title(t.name)
                   .set_color(0xbc3440)
-                  .set_description("Welcome to your ticket, a Moderator will be there shortly.");
+                  .set_description("Welcome to your ticket, a Moderator will be there shortly.")
+                  .set_timestamp(time(nullptr));
 
                 dpp::message msg(t.id, em);
                 msg.add_component(dpp::component().add_component(
@@ -137,16 +145,52 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c) {
         }
 
         if (event.custom_id == "ticket_delete") {
-            bot.channel_delete_sync(event.command.channel_id);
+            bot.message_create(dpp::message(event.command.channel_id, "Ticket gets deleted in 1 sec."));
+            try {
+                bot.channel_delete_sync(event.command.channel_id);
+            } catch (dpp::exception e) {}
         }
 
-        if (event.custom_id == "ticket_close") {}
+        if (event.custom_id == "ticket_close") {
+
+            dpp::embed em;
+
+            em.set_title("Are you sure that you want to close the Ticket?");
+
+            dpp::message you_sure_msg(dpp::message(event.command.channel_id, em)
+                                        .add_component(dpp::component()
+                                            .add_component(
+                                                dpp::component()
+                                                    .set_label("Close it")
+                                                    .set_type(dpp::cot_button)
+                                                    .set_style(dpp::cos_danger)
+                                                    .set_id("ticket_sure"))
+
+                                            .add_component(
+                                                dpp::component()
+                                                    .set_label("Nah, let it open")
+                                                    .set_type(dpp::cot_button)
+                                                    .set_style(dpp::cos_secondary)
+                                                    .set_id("ticket_sure_nah"))));
+
+            event.reply(you_sure_msg);
+        }
+
+        if (event.custom_id == "ticket_sure_nah") {
+
+        }
+
+        if (event.custom_id == "ticket_sure") {
+
+        }
 
         if (event.custom_id == "ticket_reopen") {}
 
         if (event.custom_id == "ticket_archive") {}
 
-        if (event.custom_id == "ticket_claim") {}
+        if (event.custom_id == "ticket_claim") {
+
+        }
 
     });
 }
@@ -164,11 +208,8 @@ void ticket::ticket_commands(dpp::cluster &bot,
 
 
     if (sc.name == "create") {
-        // todo: create db entry for new server
-
         mysqlpp::Query query = c.query();
         string title;
-
 
         {
             query << fmt::format("if not exists(select * from ticket where server_id='{0}') then"
@@ -177,6 +218,7 @@ void ticket::ticket_commands(dpp::cluster &bot,
             mysqlpp::StoreQueryResult res = query.store();
             u::kill_query(query);
         }
+
         query << fmt::format("select ticket.ticket_title from ticket where ticket.server_id = '{0}';",
                              event.command.guild_id);
 
