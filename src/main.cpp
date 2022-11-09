@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
         if (dpp::run_once<struct register_bot_commands>()) {
             if (argc == 2 and strcmp(argv[1], "--init-commands") != 0) {
 
-                /*thread ping_loop1([&conn, &bot, &config]() {
+                thread ping_loop1([&conn, &bot, &config]() {
                     bot.log(dpp::ll_debug, "event_loop 'ping_loop1' started.");
                     while (true) {
                         if (!conn.ping()) {
@@ -65,9 +65,9 @@ int main(int argc, char *argv[]) {
                         }
                         sleep(60 * 60 * 1);
                     }
-                });*/
+                });
 
-                /*ping_loop1.detach();*/
+                ping_loop1.detach();
                 argc = 0;
 
                 cog::regis_commands(bot);
@@ -87,12 +87,12 @@ int main(int argc, char *argv[]) {
         }
     });
 
-    bot.on_slashcommand([&bot](const dpp::slashcommand_t &event) {
+    bot.on_slashcommand([&bot, &conn](const dpp::slashcommand_t &event) {
         dpp::interaction interaction = event.command;
         dpp::command_interaction cmd_data = interaction.get_command_interaction();
 
         if (interaction.get_command_name() == "ticket") {
-            ticket::ticket_commands(bot, event, cmd_data);
+            ticket::ticket_commands(bot, event, cmd_data, conn);
         }
 
         if (interaction.get_command_name() == "ping") {
