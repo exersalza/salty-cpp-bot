@@ -37,6 +37,7 @@
  *  Command Usage:
  *   /ticket create <CHANNEL_ID/<current_channel>>
  *   /ticket set [CATEGORY_ID]
+ *   /ticket init -> Start ticket wizard, maybe later on a website.
  *   /ticket config
  *   /ticket disable/enable
  *

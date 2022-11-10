@@ -26,6 +26,7 @@ namespace cfg {
         char sql_db[14] = "salty_cpp_bot";
 
 
+        int b_color = 0xbc3440;
     private:
         // Base bot config
         string token;

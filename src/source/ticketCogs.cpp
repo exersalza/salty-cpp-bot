@@ -29,6 +29,22 @@ void ticket::init_ticket_commands(dpp::cluster &bot) {
                     add_option(dpp::command_option(dpp::co_channel, "category", "Define category", true))
     );
 
+    ticket.add_option(
+            dpp::command_option(dpp::co_sub_command, "init", "Start configuration wizard.")
+    );
+
+    ticket.add_option(
+            dpp::command_option(dpp::co_sub_command, "config", "Open config embed")
+    );
+
+    ticket.add_option(
+            dpp::command_option(dpp::co_sub_command, "enable", "Enable the ticket system")
+    );
+
+    ticket.add_option(
+            dpp::command_option(dpp::co_sub_command, "disable", "Disable the ticket system")
+    );
+
     bot.global_command_create(ticket);
 }
 
@@ -156,7 +172,8 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c) {
 
             dpp::embed em;
 
-            em.set_title("Are you sure that you want to close the Ticket?");
+            em.set_title("Are you sure that you want to close the Ticket?")
+              .set_color(0xbc3440);
 
             dpp::message you_sure_msg(dpp::message(event.command.channel_id, em)
                                         .add_component(dpp::component()
@@ -178,11 +195,15 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c) {
         }
 
         if (event.custom_id == "ticket_sure_nah") {
-
+            bot.message_delete(event.command.message_id, event.command.channel_id);
         }
 
         if (event.custom_id == "ticket_sure") {
+            dpp::embed em;
+            dpp::channel channel = event.command.get_channel();
 
+
+            event.reply(dpp::message("ticket got closed"));
         }
 
         if (event.custom_id == "ticket_reopen") {}
@@ -216,6 +237,7 @@ void ticket::ticket_commands(dpp::cluster &bot,
             query << fmt::format("if not exists(select * from ticket where server_id='{0}') then"
                                  "     insert into ticket (server_id) values ('{0}');"
                                  "end if; ", event.command.guild_id);
+
             mysqlpp::StoreQueryResult res = query.store();
             u::kill_query(query);
         }
