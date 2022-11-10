@@ -55,6 +55,7 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c) {
             dpp::channel channel;
             size_t category_id, notify_id;
             string channel_mention;
+            dpp::guild guild = event.command.get_guild();
             dpp::user user = event.command.usr;
             int ticket_id;
 
@@ -77,12 +78,12 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c) {
                     .set_guild_id(event.command.guild_id)
                     .set_parent_id(category_id);
 
-
-            channel.set_lock_permissions(true);
-
             channel.add_permission_overwrite(event.command.usr.id, dpp::overwrite_type::ot_member,
-                                            dpp::permissions::p_send_messages |
-                                            dpp::permissions::p_view_channel, 0);
+                                                dpp::permissions::p_send_messages |
+                                                dpp::permissions::p_view_channel, 0);
+
+            channel.add_permission_overwrite(guild.id, dpp::overwrite_type::ot_role, 0, dpp::permissions::p_view_channel);
+
 
             bot.channel_create(channel, [&, event, notify_id](const dpp::confirmation_callback_t &confm) {
                 if (confm.is_error()) {
