@@ -25,8 +25,13 @@ void ticket::init_ticket_commands(dpp::cluster &bot) {
     );
 
     ticket.add_option(
-            dpp::command_option(dpp::co_sub_command, "set", "Set category for new tickets.").
-                    add_option(dpp::command_option(dpp::co_channel, "category", "Define category", true))
+            dpp::command_option(dpp::co_sub_command, "set", "Set category for new tickets.")
+                    .add_option(dpp::command_option(dpp::co_channel, "category", "Define category", false))
+                    .add_option(dpp::command_option(dpp::co_role, "role", "Define Supporter/Moderator role", false))
+                    .add_option(dpp::command_option(dpp::co_role, "role2", "Define Supporter/Moderator role2", false))
+                    .add_option(dpp::command_option(dpp::co_role, "role3", "Define Supporter/Moderator role3", false))
+                    .add_option(dpp::command_option(dpp::co_role, "role4", "Define Supporter/Moderator role4", false))
+                    .add_option(dpp::command_option(dpp::co_role, "role5", "Define Supporter/Moderator role5", false))
     );
 
     ticket.add_option(
@@ -103,14 +108,8 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c) {
 
             bot.channel_create(channel, [&, event, notify_id](const dpp::confirmation_callback_t &confm) {
                 if (confm.is_error()) {
-                    string err = confm.get_error().message;
-                    event.edit_original_response(
-                            dpp::message(
-                                    "Something went wrong, please try again later, or contact an Moderator.")
-                                    .set_flags(dpp::m_ephemeral));
+                    confm_error<dpp::button_click_t>(bot, event, confm);
 
-                    // not a typo
-                    bot.log(dpp::ll_error, fmt::format("FUCK Somethin went wron {}", err));
                     return;
                 }
 
@@ -202,8 +201,19 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c) {
             dpp::embed em;
             dpp::channel channel = event.command.get_channel();
 
+            event.reply(dpp::message("ticket gets closed"));
 
-            event.reply(dpp::message("ticket got closed"));
+            mysqlpp::Query query = c.query();
+            query << fmt::format("select user_id from cur_tickets where server_id = {0} and ticket_id = {1};",
+                                 event.command.guild_id, event.command.channel_id);
+
+            mysqlpp::StoreQueryResult res = query.store();
+
+            long user_id = res[0]["user_id"];
+            u::kill_query(query);
+
+            bot.channel_edit_permissions(channel, user_id, 0, dpp::permissions::p_view_channel, true);
+
         }
 
         if (event.custom_id == "ticket_reopen") {}
@@ -215,6 +225,19 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c) {
         }
 
     });
+}
+
+template<typename T>
+void ticket::confm_error(const dpp::cluster &bot, const T &event,
+                         const dpp::confirmation_callback_t &confm) {
+    string err = confm.get_error().message;
+    event.edit_original_response(
+            dpp::message(
+                    "Something went wrong, please try again later, or contact an Moderator.")
+                    .set_flags(dpp::m_ephemeral));
+
+    // not a typo
+    bot.log(dpp::ll_error, fmt::format("FUCK Somethin went wron {}", err));
 }
 
 void ticket::ticket_commands(dpp::cluster &bot,
@@ -235,11 +258,10 @@ void ticket::ticket_commands(dpp::cluster &bot,
 
         {
             query << fmt::format("if not exists(select * from ticket where server_id='{0}') then"
-                                 "     insert into ticket (server_id) values ('{0}');"
+                                    " insert into ticket (server_id) values ('{0}');"
                                  "end if; ", event.command.guild_id);
 
-            mysqlpp::StoreQueryResult res = query.store();
-            u::kill_query(query);
+            query.execute();
         }
 
         query << fmt::format("select ticket.ticket_title from ticket where ticket.server_id = '{0}';",
@@ -272,6 +294,59 @@ void ticket::ticket_commands(dpp::cluster &bot,
 
             event.reply("Something went wrong, try again later.");
         }
+
+    }
+
+    if (sc.name == "set" and !sc.options.empty()) {
+        short count = 0;
+        stringstream ss;
+
+        for (auto& i : sc.options) {
+            if (i.name.find("role") != string::npos) {
+                ss << "Roles ";
+
+                std::size_t role_id = sc.get_value<dpp::snowflake>(count);
+                mysqlpp::Query query = c.query();
+
+                ss << fmt::format("<@&{0}> ", role_id);
+
+                query << fmt::format(
+                    "if not exists(select * from ticket_access_roles where role_id='{1}') then"
+                        " insert into ticket_access_roles (server_id, role_id) values ('{0}', '{1}');"
+                    "end if; ", event.command.guild_id, role_id);
+
+                query.execute();
+
+                ss << "for support added. ";
+            }
+
+            if (i.name == "category") {
+                size_t category_id = sc.get_value<dpp::snowflake>(count);
+
+                bot.channels_get(event.command.guild_id, [&, event](const dpp::confirmation_callback_t &confm) {
+                    if (confm.is_error()) {
+                        confm_error<dpp::slashcommand_t>(bot, event, confm);
+                        return;
+                    }
+
+                    mysqlpp::Query query = c.query();
+
+                    query << fmt::format("if exists(select * from salty_cpp_bot.ticket where server_id = {0}) then"
+                                " update salty_cpp_bot.ticket set category_id = {1} where server_id = {0}; "
+                                "else"
+                                " insert into salty_cpp_bot.ticket (server_id, category_id) values ({0}, {1}); "
+                                "end if;",
+                            event.command.guild_id, category_id);
+
+                    query.execute();
+                });
+                ss << fmt::format("Ticket category changed to: '<#{0}>'. ", category_id);
+            }
+            count++;
+        }
+
+
+        event.reply(dpp::message(ss.str()).set_flags(dpp::m_ephemeral));
 
     }
 }

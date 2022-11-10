@@ -55,6 +55,8 @@ namespace ticket {
 
     dpp::message create_ticket_message(size_t &channel_id, dpp::embed &embed);
 
+    template<typename T>
+    void confm_error(const dpp::cluster &bot, const T &event, const dpp::confirmation_callback_t &confm);
 } // ticket
 
 
