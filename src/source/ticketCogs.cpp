@@ -115,6 +115,14 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c) {
 
                 auto t = confm.get<dpp::channel>();
 
+                mysqlpp::Query query = c.query();
+
+                query << fmt::format(
+                        "insert into salty_cpp_bot.cur_tickets (server_id, user_id, ticket_id) values ({0}, {1}, {2})",
+                        guild.id, user.id, t.id);
+
+                query.execute();
+
                 event.edit_original_response(dpp::message(
                         fmt::format("Ticket got created {0}", t.get_mention())
                 ).set_flags(dpp::m_ephemeral));
