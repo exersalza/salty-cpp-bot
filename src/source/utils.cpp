@@ -4,12 +4,13 @@
 
 #include <iostream>
 #include <sstream>
+#include <fmt/format.h>
 
 #include "../include/utils.hpp"
 
 using namespace std;
 
-vector<string> u::split(std::string &s, const char &del) {
+[[maybe_unused]] vector<string> u::split(std::string &s, const char &del) {
     /** String split into vector with single char delimiter
      *
      * @param s : Give the String to split.
@@ -27,7 +28,7 @@ vector<string> u::split(std::string &s, const char &del) {
     return ret;
 }
 
-vector<string> u::split(std::string &s, const std::string &del) {
+[[maybe_unused]] vector<string> u::split(std::string &s, const std::string &del) {
     /** String split into vector with multi char delimiter
      *
      * @param s : Give the String to split.
@@ -49,7 +50,7 @@ vector<string> u::split(std::string &s, const std::string &del) {
     return ret;
 }
 
-bool u::fileExists(const string &name) {
+[[maybe_unused]] bool u::fileExists(const string &name) {
     if (FILE *file = fopen(name.c_str(), "r")) {
         fclose(file);
         return true;
@@ -72,4 +73,19 @@ int u::kill_query(mysqlpp::Query &query) {
         return 1;
     }
     return 0;
+}
+
+
+void u::presence_update(dpp::cluster &bot) {
+    bot.log(dpp::ll_info, "Presence warmup");
+    ::sleep(90);
+
+    while (true) {
+        try {
+            bot.set_presence(dpp::presence(dpp::ps_online, dpp::activity_type::at_watching, "the development of me."));
+            ::sleep(120);
+        } catch (exception &e) {
+            bot.log(dpp::ll_error, fmt::format("FUCK, somethin went wron {0}", e.what()));
+        }
+    }
 }

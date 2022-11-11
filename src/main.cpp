@@ -51,8 +51,23 @@ int main(int argc, char *argv[]) {
     bot.on_ready([&bot, &argc, &argv, &conn, &config](const dpp::ready_t &event) {
         if (dpp::run_once<struct register_bot_commands>()) {
             if (argc == 2 and strcmp(argv[1], "--init-commands") != 0) {
+                thread thr_presence([&bot]() {
+                    bot.log(dpp::ll_info, "Presence warmup");
+                    ::sleep(90);
+                    bot.log(dpp::ll_info, "Presence gonna start now.");
 
-                thread ping_loop1([&conn, &bot, &config]() {
+                    while (true) {
+                        try {
+                            bot.set_presence(dpp::presence(dpp::ps_online, dpp::activity_type::at_watching, "the development of me."));
+                            ::sleep(120);
+                        } catch (exception &e) {
+                            bot.log(dpp::ll_error, fmt::format("FUCK, somethin went wron {0}", e.what()));
+                        }
+                    }
+                });
+                thr_presence.detach();
+
+                thread thr_ping_loop1([&conn, &bot, &config]() {
                     bot.log(dpp::ll_debug, "event_loop 'ping_loop1' started.");
                     while (true) {
                         if (!conn.ping()) {
@@ -67,7 +82,7 @@ int main(int argc, char *argv[]) {
                     }
                 });
 
-                ping_loop1.detach();
+                thr_ping_loop1.detach();
                 argc = 0;
 
                 cog::regis_commands(bot);
