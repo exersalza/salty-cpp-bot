@@ -63,12 +63,14 @@ dpp::message ticket::create_ticket_message(size_t &channel_id, dpp::embed &embed
                                                                   .set_id("ticket_create")));
 }
 
-void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c) {
+void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::Config &config) {
     bot.log(dpp::ll_debug, "Initializing 'ticket_events'");
 
-    bot.on_button_click([&bot, &c](const dpp::button_click_t &event) {
+    bot.on_button_click([&bot, &c, &config](const dpp::button_click_t &event) {
+        dpp::interaction event_cmd = event.command;
+
         if (event.custom_id == "ticket_create") {
-            // start thinking and then decide what happens later, don't let user wait
+            // start thinking and then decide what happens later, don't let the user wait
             // it's like a traffic light, you wait 2 seconds and everyone is mad at you.
             event.thinking(true);
 
@@ -76,13 +78,13 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c) {
             dpp::channel channel;
             size_t category_id, notify_id;
             string channel_mention;
-            dpp::guild guild = event.command.get_guild();
-            dpp::user user = event.command.usr;
+            dpp::guild guild = event_cmd.get_guild();
+            dpp::user user = event_cmd.usr;
             int ticket_id;
 
             mysqlpp::Query query = c.query();
             query << fmt::format("SELECT ticket.category_id, ticket.count, ticket.notify_channel FROM ticket WHERE ticket.server_id = '{0}'; "
-              "UPDATE salty_cpp_bot.ticket SET count=count + 1 WHERE ticket.server_id = '{0}'", event.command.guild_id);
+              "UPDATE salty_cpp_bot.ticket SET count=count + 1 WHERE ticket.server_id = '{0}'", event_cmd.guild_id);
 
 
             mysqlpp::StoreQueryResult res = query.store();
@@ -96,10 +98,10 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c) {
 
             channel.set_name(fmt::format("ticket-{0}", ticket_id + 1))
                     .set_type(dpp::channel_type::CHANNEL_TEXT)
-                    .set_guild_id(event.command.guild_id)
+                    .set_guild_id(event_cmd.guild_id)
                     .set_parent_id(category_id);
 
-            channel.add_permission_overwrite(event.command.usr.id, dpp::overwrite_type::ot_member,
+            channel.add_permission_overwrite(event_cmd.usr.id, dpp::overwrite_type::ot_member,
                                                 dpp::permissions::p_send_messages |
                                                 dpp::permissions::p_view_channel, 0);
 
@@ -147,7 +149,7 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c) {
                 // notify mods when id is provided
                 if (notify_id > 0) {
                     dpp::embed e;
-                    e.set_title(fmt::format("{0} got created by {1}", t.name, event.command.usr.username))
+                    e.set_title(fmt::format("{0} got created by {1}", t.name, event_cmd.usr.username))
                      .set_description(fmt::format("Claimed by: {0}\nTicket: {1}", "None", t.get_mention()))
                      .set_timestamp(time(nullptr))
                      .set_color(0xbc3440);
@@ -165,14 +167,15 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c) {
 
                 }
             });
-
+            return;
         }
 
         if (event.custom_id == "ticket_delete") {
-            bot.message_create(dpp::message(event.command.channel_id, "Ticket gets deleted in 1 sec."));
+            bot.message_create(dpp::message(event_cmd.channel_id, "Ticket gets deleted in 1 sec."));
             try {
-                bot.channel_delete_sync(event.command.channel_id);
+                bot.channel_delete_sync(event_cmd.channel_id);
             } catch (dpp::exception e) {}
+            return;
         }
 
         if (event.custom_id == "ticket_close") {
@@ -182,7 +185,7 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c) {
             em.set_title("Are you sure that you want to close the Ticket?")
               .set_color(0xbc3440);
 
-            dpp::message you_sure_msg(dpp::message(event.command.channel_id, em)
+            dpp::message you_sure_msg(dpp::message(event_cmd.channel_id, em)
                                         .add_component(dpp::component()
                                             .add_component(
                                                 dpp::component()
@@ -199,39 +202,110 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c) {
                                                     .set_id("ticket_sure_nah"))));
 
             event.reply(you_sure_msg);
+            return;
         }
 
         if (event.custom_id == "ticket_sure_nah") {
-            bot.message_delete(event.command.message_id, event.command.channel_id);
+            bot.message_delete(event_cmd.message_id, event_cmd.channel_id);
+            return;
         }
 
         if (event.custom_id == "ticket_sure") {
-            dpp::embed em;
-            dpp::channel channel = event.command.get_channel();
+            dpp::channel channel = event_cmd.get_channel();
+            size_t channel_id = channel.id;
+            size_t message_id = event_cmd.message_id;
 
             event.reply(dpp::message("ticket gets closed"));
 
+            bot.channel_edit(channel.set_name(fmt::format("closed-{0}", channel.name)));
+
             mysqlpp::Query query = c.query();
             query << fmt::format("select user_id from cur_tickets where server_id = {0} and ticket_id = {1};",
-                                 event.command.guild_id, event.command.channel_id);
+                                 event_cmd.guild_id, event_cmd.channel_id);
 
             mysqlpp::StoreQueryResult res = query.store();
 
             long user_id = res[0]["user_id"];
             u::kill_query(query);
 
-            bot.channel_edit_permissions(channel, user_id, 0, dpp::permissions::p_view_channel, true);
+            bot.channel_delete_permission(channel, user_id, [&](const dpp::confirmation_callback_t &confm) {
+                if (confm.is_error()) {
+                    ticket::confm_error(bot, event, confm);
+                }
 
+                dpp::embed em;
+
+                bot.message_delete(message_id, channel_id);
+
+                em.set_title("Admin Controls")
+                  .set_color(config.b_color);
+
+                bot.message_create(dpp::message(channel_id, em).add_component(
+                                        dpp::component().add_component(
+                                        dpp::component()
+                                            .set_type(dpp::cot_button)
+                                            .set_id("ticket_delete")
+                                            .set_style(dpp::cos_danger)
+                                            .set_label("Delete ticket"))
+                                        .add_component(
+                                        dpp::component()
+                                            .set_label("Reopen ticket")
+                                            .set_id("ticket_reopen")
+                                            .set_type(dpp::cot_button)
+                                            .set_style(dpp::cos_secondary))
+                                        .add_component(
+                                        dpp::component()
+                                            .set_label("Archive ticket")
+                                            .set_id("ticket_archive")
+                                            .set_type(dpp::cot_button)
+                                            .set_style(dpp::cos_secondary))));
+
+            });
+            return;
         }
 
-        if (event.custom_id == "ticket_reopen") {}
+        if (event.custom_id == "ticket_reopen") {
+            event.thinking();
+            dpp::channel channel = event_cmd.get_channel();
+            mysqlpp::Query query = c.query();
 
-        if (event.custom_id == "ticket_archive") {}
+            query << fmt::format(
+                    "select user_id from salty_cpp_bot.cur_tickets where server_id = {0} and ticket_id = {1};",
+                        event_cmd.guild_id, event_cmd.channel_id);
+
+            mysqlpp::StoreQueryResult res = query.store();
+            size_t user_id = res[0]["user_id"];
+
+            u::kill_query(query);
+
+            bot.message_delete(event_cmd.message_id, channel.id);
+
+            bot.channel_edit_permissions(channel.id, user_id, dpp::permissions::p_view_channel, 0, true);
+
+            event.edit_original_response(fmt::format("<@{0}> your ticket got Re-Opened.", user_id));
+            return;
+        }
+
+        if (event.custom_id == "ticket_archive") {
+            return;
+        }
 
         if (event.custom_id == "ticket_claim") {
-
+            return;
         }
 
+    });
+
+    bot.on_channel_delete([&c](const dpp::channel_delete_t &event) {
+        // db cleaner, not sure yet if I want to let this in, but it's there.
+        mysqlpp::Query query = c.query();
+
+        query << fmt::format("if exists(select * from salty_cpp_bot.cur_tickets where ticket_id = {0} and server_id = {1}) then "
+                             "delete from salty_cpp_bot.cur_tickets where ticket_id = {0} and server_id = {1}; "
+                             "end if;",
+                             event.deleted->id, event.deleted->guild_id);
+
+        query.execute();
     });
 }
 

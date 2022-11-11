@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
                 argc = 0;
 
                 cog::regis_commands(bot);
-                ticket::init_ticket_events(bot, conn);
+                ticket::init_ticket_events(bot, conn, config);
                 ticket::init_ticket_commands(bot);
             }
         }

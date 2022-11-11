@@ -11,6 +11,8 @@
 #include <nlohmann/json.hpp>
 #include <mysql++/mysql++.h>
 
+#include "config.hpp"
+
 /* Todo:
  *  legend:
  *      ? -> don't know if this gonna happen
@@ -44,7 +46,7 @@
  * */
 
 namespace ticket {
-    void init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c);
+    void init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::Config &config);
 
     void init_ticket_commands(dpp::cluster &bot);
 
