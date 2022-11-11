@@ -456,19 +456,23 @@ void ticket::ticket_commands(dpp::cluster &bot,
 
         mysqlpp::StoreQueryResult res = query.store();
 
-        int enabled = res[0]["enabled"];
+        bool enabled = res[0]["enabled"];
         size_t category_id = res[0]["category_id"];
         auto ticket_title = (std::string) res[0]["ticket_title"];
         size_t notify_channel = res[0]["notify_channel"];
         int ticket_count = res[0]["count"];
+        std::stringstream roles;
 
 
         auto res2 = query.store_next();
         for (size_t i = 0; i < res2.num_rows(); ++i) {
-            std::cout << res2[i]["role_id"] << '\n';
+            size_t role = res2[i]["role_id"];
+            roles << fmt::format("<@&{0}>", role) << '\n';
         }
 
-        em.add_field("Enabled", "", true);
+        em.add_field("Enabled", enabled ? "True" : "False", true);
+        em.add_field("Support Roles:", roles.str(), false);
+        event.reply(dpp::message(event.command.channel_id, em));
 
     }
 
