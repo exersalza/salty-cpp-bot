@@ -286,14 +286,13 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
             u::kill_query(query);
 
             bot.message_delete(event_cmd.message_id, channel.id);
-
             bot.channel_edit_permissions(channel.id, user_id, dpp::permissions::p_view_channel, 0, true);
 
             // prevent rate limitation
-            ::sleep(2);
+            ::sleep(5);
             bot.channel_edit(channel.set_name(std::regex_replace(channel.name, std::regex("closed-"), "")));
-
             event.edit_original_response(fmt::format("<@{0}> your ticket got Re-Opened.", user_id));
+
             return;
         }
 
@@ -336,15 +335,15 @@ void ticket::confm_error(const dpp::cluster &bot, const T &event,
 void ticket::ticket_commands(dpp::cluster &bot,
                              const dpp::slashcommand_t &event,
                              const dpp::command_interaction &cmd_data,
-                             mysqlpp::Connection &c) {
+                             mysqlpp::Connection &c,
+                             cfg::Config &conf) {
 
     auto sc = cmd_data.options[0];
 
     dpp::embed em;
     dpp::guild guild = event.command.get_guild();
-    std::string guild_icon = guild.get_icon_url();
 
-
+    // ik you could use a switch here, but I'm not a fan of indentation so no switch here.
     if (sc.name == "create") {
         mysqlpp::Query query = c.query();
         std::string title;
@@ -444,10 +443,62 @@ void ticket::ticket_commands(dpp::cluster &bot,
     }
 
     if (sc.name == "config") {
+        em.set_title("Ticket System configuration")
+          .set_description(fmt::format("Config for {0}", event.command.get_guild().name))
+          .set_color(conf.b_color)
+          .set_footer("Kenexar.eu", bot.me.get_avatar_url())
+          .set_timestamp(time(nullptr));
 
+        mysqlpp::Query query = c.query();
+        query << fmt::format("select ticket.enabled, ticket.category_id, ticket.ticket_title, "
+                 "ticket.notify_channel, ticket.count from salty_cpp_bot.ticket where server_id = {0};"
+                 "select ticket_access_roles.role_id from ticket_access_roles where server_id = {0};", event.command.guild_id);
+
+        mysqlpp::StoreQueryResult res = query.store();
+
+        int enabled = res[0]["enabled"];
+        size_t category_id = res[0]["category_id"];
+        auto ticket_title = (std::string) res[0]["ticket_title"];
+        size_t notify_channel = res[0]["notify_channel"];
+        int ticket_count = res[0]["count"];
+
+
+        auto res2 = query.store_next();
+        for (size_t i = 0; i < res2.num_rows(); ++i) {
+            std::cout << res2[i]["role_id"] << '\n';
+        }
+
+        em.add_field("Enabled", "", true);
+
+    }
+
+    if (sc.name == "change") {
+
+    }
+
+    if (sc.name == "enable") {
+        change_state(event, c, "enabled", 1);
+    }
+
+    if (sc.name == "disable") {
+        change_state(event, c, "disabled", 0);
     }
 
     if (sc.name == "init") {
 
     }
+}
+
+void ticket::change_state(const dpp::slashcommand_t &event,
+                          mysqlpp::Connection &c,
+                          const std::string &state,
+                          const int i_state) {
+    mysqlpp::Query query = c.query();
+
+    query << fmt::format("update salty_cpp_bot.ticket set enabled={1} where server_id = {0};",
+                         event.command.guild_id, i_state);
+
+    query.execute();
+
+    event.reply(dpp::message(fmt::format("Ticket system got {0}.", state)).set_flags(dpp::m_ephemeral));
 }

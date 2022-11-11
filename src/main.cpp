@@ -97,12 +97,12 @@ int main(int argc, char *argv[]) {
         }
     });
 
-    bot.on_slashcommand([&bot, &conn](const dpp::slashcommand_t &event) {
+    bot.on_slashcommand([&bot, &conn, &config](const dpp::slashcommand_t &event) {
         dpp::interaction interaction = event.command;
         dpp::command_interaction cmd_data = interaction.get_command_interaction();
 
         if (interaction.get_command_name() == "ticket") {
-            ticket::ticket_commands(bot, event, cmd_data, conn);
+            ticket::ticket_commands(bot, event, cmd_data, conn, config);
         }
 
         if (interaction.get_command_name() == "ping") {

@@ -37,8 +37,9 @@
  *      rename -> rename ticket only available when tickit is not closed.
  *      |
  *  Command Usage:
- *   /ticket create <CHANNEL_ID/<current_channel>>
- *   /ticket set [CATEGORY_ID]
+ *   /ticket create <CHANNEL_ID/<<current channel>>>
+ *   /ticket set [CATEGORY_ID||ROLE1-6]
+ *   /ticket remove [CATEGORY_ID||ROLE1-6]
  *   /ticket init -> Start ticket wizard, maybe later on a website.
  *   /ticket config
  *   /ticket disable/enable
@@ -54,12 +55,15 @@ namespace ticket {
     void ticket_commands(dpp::cluster &bot,
                          const dpp::slashcommand_t &event,
                          const dpp::command_interaction &cmd_data,
-                         mysqlpp::Connection &c);
+                         mysqlpp::Connection &c,
+                         cfg::Config &conf);
 
     dpp::message create_ticket_message(size_t &channel_id, dpp::embed &embed);
 
     template<typename T>
     void confm_error(const dpp::cluster &bot, const T &event, const dpp::confirmation_callback_t &confm);
+
+    void change_state(const dpp::slashcommand_t &event, mysqlpp::Connection &c, const std::string& state, const int i_state);
 } // ticket
 
 
