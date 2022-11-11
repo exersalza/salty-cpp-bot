@@ -10,7 +10,6 @@
 #include "../include/utils.hpp"
 #include "../include/ticketCogs.hpp"
 
-using namespace std;
 
 void ticket::init_ticket_commands(dpp::cluster &bot) {
     bot.log(dpp::ll_debug, "Initializing 'ticket_commands'");
@@ -74,29 +73,37 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
             // it's like a traffic light, you wait 2 seconds and everyone is mad at you.
             event.thinking(true);
 
-            dpp::embed em;
-            dpp::channel channel;
             size_t category_id, notify_id;
-            string channel_mention;
-            dpp::guild guild = event_cmd.get_guild();
-            dpp::user user = event_cmd.usr;
-            int ticket_id;
+            int ticket_count;
 
             mysqlpp::Query query = c.query();
-            query << fmt::format("SELECT ticket.category_id, ticket.count, ticket.notify_channel FROM ticket WHERE ticket.server_id = '{0}'; "
+            query << fmt::format("SELECT ticket.category_id, ticket.count, ticket.notify_channel, ticket.enabled FROM ticket WHERE ticket.server_id = '{0}'; "
               "UPDATE salty_cpp_bot.ticket SET count=count + 1 WHERE ticket.server_id = '{0}'", event_cmd.guild_id);
 
 
             mysqlpp::StoreQueryResult res = query.store();
 
             category_id = res[0]["category_id"];
-            ticket_id = res[0]["count"];
+            ticket_count = res[0]["count"];
             notify_id = res[0]["notify_channel"];
+
+            short enabled = res[0]["enabled"];
 
             u::kill_query(query);
 
+            if (!enabled) {
+                event.edit_original_response(dpp::message("Ticket's are not enabled, contact an Moderator when you want to create a Ticket."));
+                return;
+            }
 
-            channel.set_name(fmt::format("ticket-{0}", ticket_id + 1))
+            dpp::embed em;
+            dpp::channel channel;
+            string channel_mention;
+            dpp::guild guild = event_cmd.get_guild();
+            dpp::user user = event_cmd.usr;
+
+
+            channel.set_name(fmt::format("ticket-{0}", ticket_count + 1))
                     .set_type(dpp::channel_type::CHANNEL_TEXT)
                     .set_guild_id(event_cmd.guild_id)
                     .set_parent_id(category_id);
@@ -282,6 +289,10 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
 
             bot.channel_edit_permissions(channel.id, user_id, dpp::permissions::p_view_channel, 0, true);
 
+            // prevent rate limitation
+            ::sleep(2);
+            bot.channel_edit(channel.set_name(std::regex_replace(channel.name, std::regex("closed-"), "")));
+
             event.edit_original_response(fmt::format("<@{0}> your ticket got Re-Opened.", user_id));
             return;
         }
@@ -429,6 +440,14 @@ void ticket::ticket_commands(dpp::cluster &bot,
 
 
         event.reply(dpp::message(ss.str()).set_flags(dpp::m_ephemeral));
+
+    }
+
+    if (sc.name == "config") {
+
+    }
+
+    if (sc.name == "init") {
 
     }
 }
