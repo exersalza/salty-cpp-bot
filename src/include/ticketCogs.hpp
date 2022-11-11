@@ -6,7 +6,6 @@
 #define DCBOT_TICKETCOGS_HPP
 
 #include <string>
-#include <vector>
 #include <dpp/dpp.h>
 #include <nlohmann/json.hpp>
 #include <mysql++/mysql++.h>
@@ -35,6 +34,7 @@
  *          >>| change category
  *          >>| change ticket notify for mods (channel acquired)
  *      disable -> disable ticket system for server, gets re-enabled with create
+ *      rename -> rename ticket only available when tickit is not closed.
  *      |
  *  Command Usage:
  *   /ticket create <CHANNEL_ID/<current_channel>>
@@ -42,6 +42,7 @@
  *   /ticket init -> Start ticket wizard, maybe later on a website.
  *   /ticket config
  *   /ticket disable/enable
+ *   /ticket rename -> permission mod
  *
  * */
 

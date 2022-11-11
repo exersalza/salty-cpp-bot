@@ -7,17 +7,15 @@
 
 #include <string>
 
-using namespace std;
-
 namespace cfg {
 
     class Config {
     public:
         Config() = default;
 
-        explicit Config(string &path);
+        explicit Config(std::string &path);
 
-        [[nodiscard]] const string &getToken() const;
+        [[nodiscard]] const std::string &getToken() const;
 
         // SQL
         char sql_host[11] = "localhost";
@@ -29,8 +27,8 @@ namespace cfg {
         int b_color = 0xbc3440;
     private:
         // Base bot config
-        string token;
-        string path;
+        std::string token;
+        std::string path;
     };
 
 } // Cfg

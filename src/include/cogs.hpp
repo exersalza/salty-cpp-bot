@@ -6,11 +6,6 @@
 #define DCBOT_COGS_HPP
 
 #include <dpp/dpp.h>
-#include <nlohmann/json.hpp>
-#include <vector>
-#include <string>
-
-using namespace std;
 
 namespace cog {
     void regis_commands(dpp::cluster &bot);

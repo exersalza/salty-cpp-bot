@@ -4,28 +4,23 @@
 
 
 #include <regex>
-#include <iomanip>
 #include <iostream>
 #include <dpp/dpp.h>
 #include <fmt/format.h>
 #include <mysql++/mysql++.h>
 
-#include "include/main.hpp"
 #include "include/cogs.hpp"
-#include "include/utils.hpp"
 #include "include/config.hpp"
 #include "include/ticketCogs.hpp"
 #include "include/economyCogs.hpp"
 
-using namespace std;
-using namespace cfg;
 
 
 int main(int argc, char *argv[]) {
     // Normal config shit
-    string path = "../config.json";
-    Config config = Config(path);
-    const string &token = config.getToken();
+    std::string path = "../config.json";
+    cfg::Config config = cfg::Config(path);
+    const std::string &token = config.getToken();
 
     // SQL Shit
     mysqlpp::Connection conn;
@@ -36,14 +31,14 @@ int main(int argc, char *argv[]) {
 
 
     if (!conn.connected()) {
-        cout << "Couldn't connect to db..." << endl;
+        std::cout << "Couldn't connect to db..." << std::endl;
         return -1;
     }
 
     dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
 
     dpp::cache<dpp::message> bot_message_cache;
-    string shop_name = "test";
+    std::string shop_name = "test";
     economy::Shop shop(shop_name);
 
     bot.on_log(dpp::utility::cout_logger());
@@ -51,7 +46,7 @@ int main(int argc, char *argv[]) {
     bot.on_ready([&bot, &argc, &argv, &conn, &config](const dpp::ready_t &event) {
         if (dpp::run_once<struct register_bot_commands>()) {
             if (argc == 2 and strcmp(argv[1], "--init-commands") != 0) {
-                thread thr_presence([&bot]() {
+                std::thread thr_presence([&bot]() {
                     bot.log(dpp::ll_info, "Presence warmup");
                     ::sleep(90);
                     bot.log(dpp::ll_info, "Presence gonna start now.");
@@ -60,14 +55,14 @@ int main(int argc, char *argv[]) {
                         try {
                             bot.set_presence(dpp::presence(dpp::ps_online, dpp::activity_type::at_watching, "the development of me."));
                             ::sleep(120);
-                        } catch (exception &e) {
+                        } catch (std::exception &e) {
                             bot.log(dpp::ll_error, fmt::format("FUCK, somethin went wron {0}", e.what()));
                         }
                     }
                 });
                 thr_presence.detach();
 
-                thread thr_ping_loop1([&conn, &bot, &config]() {
+                std::thread thr_ping_loop1([&conn, &bot, &config]() {
                     bot.log(dpp::ll_debug, "event_loop 'ping_loop1' started.");
                     while (true) {
                         if (!conn.ping()) {

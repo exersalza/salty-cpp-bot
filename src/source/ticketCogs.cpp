@@ -98,7 +98,7 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
 
             dpp::embed em;
             dpp::channel channel;
-            string channel_mention;
+            std::string channel_mention;
             dpp::guild guild = event_cmd.get_guild();
             dpp::user user = event_cmd.usr;
 
@@ -181,7 +181,7 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
             bot.message_create(dpp::message(event_cmd.channel_id, "Ticket gets deleted in 1 sec."));
             try {
                 bot.channel_delete_sync(event_cmd.channel_id);
-            } catch (dpp::exception e) {}
+            } catch (std::exception e) {}
             return;
         }
 
@@ -323,7 +323,7 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
 template<typename T>
 void ticket::confm_error(const dpp::cluster &bot, const T &event,
                          const dpp::confirmation_callback_t &confm) {
-    string err = confm.get_error().message;
+    std::string err = confm.get_error().message;
     event.edit_original_response(
             dpp::message(
                     "Something went wrong, please try again later, or contact an Moderator.")
@@ -347,7 +347,7 @@ void ticket::ticket_commands(dpp::cluster &bot,
 
     if (sc.name == "create") {
         mysqlpp::Query query = c.query();
-        string title;
+        std::string title;
 
         {
             query << fmt::format("if not exists(select * from ticket where server_id='{0}') then"
@@ -362,7 +362,7 @@ void ticket::ticket_commands(dpp::cluster &bot,
 
         mysqlpp::StoreQueryResult res = query.store();
 
-        title = (string) res[0]["ticket_title"];
+        title = (std::string) res[0]["ticket_title"];
 
         u::kill_query(query);
 
@@ -392,10 +392,10 @@ void ticket::ticket_commands(dpp::cluster &bot,
 
     if (sc.name == "set" and !sc.options.empty()) {
         short count = 0;
-        stringstream ss;
+        std::stringstream ss;
 
         for (auto& i : sc.options) {
-            if (i.name.find("role") != string::npos) {
+            if (i.name.find("role") != std::string::npos) {
                 ss << "Roles ";
 
                 std::size_t role_id = sc.get_value<dpp::snowflake>(count);

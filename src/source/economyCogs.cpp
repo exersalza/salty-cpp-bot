@@ -11,8 +11,8 @@
 using json = nlohmann::json;
 
 
-economy::Shop::Shop(string &name) {
-    fstream f("../shopConfig.json");
+economy::Shop::Shop(std::string &name) {
+    std::fstream f("../shopConfig.json");
     json d = json::parse(f);
 
     d = d[name];
@@ -50,19 +50,19 @@ dpp::message economy::Shop::createEmbed(const size_t channel_id) {
 }
 
 
-vector<economy::Shop> economy::Economy::getShops() {
+std::vector<economy::Shop> economy::Economy::getShops() {
     return shops;
 }
 
-const string &economy::Shop::getIndex() const {
+const std::string &economy::Shop::getIndex() const {
     return index;
 }
 
-const string &economy::Shop::getDispName() const {
+const std::string &economy::Shop::getDispName() const {
     return disp_name;
 }
 
-const string &economy::Shop::getDesc() const {
+const std::string &economy::Shop::getDesc() const {
     return desc;
 }
 
@@ -70,15 +70,15 @@ const json &economy::Shop::getItems() const {
     return items;
 }
 
-const string &economy::Shop::getColor() const {
+const std::string &economy::Shop::getColor() const {
     return color;
 }
 
-void economy::Shop::setDispName(const string &dispName) {
+void economy::Shop::setDispName(const std::string &dispName) {
     disp_name = dispName;
 }
 
-void economy::Shop::setDesc(const string &desc) {
+void economy::Shop::setDesc(const std::string &desc) {
     this->desc = desc;
 }
 
@@ -86,6 +86,6 @@ void economy::Shop::setItems(const json &items) {
     this->items = items;
 }
 
-void economy::Shop::setColor(const string &color) {
+void economy::Shop::setColor(const std::string &color) {
     this->color = color;
 }

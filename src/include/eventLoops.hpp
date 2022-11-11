@@ -6,8 +6,6 @@
 #ifndef DCBOT_EVENTLOOPS_HPP
 #define DCBOT_EVENTLOOPS_HPP
 
-#include <fmt/format.h>
-#include <mysql++/mysql++.h>
 #include <dpp/dpp.h>
 
 namespace el {

@@ -2,15 +2,12 @@
 // Created by julian on 29.10.22.
 //
 
-#include <iostream>
-#include <sstream>
+#include <string>
 #include <fmt/format.h>
 
 #include "../include/utils.hpp"
 
-using namespace std;
-
-[[maybe_unused]] vector<string> u::split(std::string &s, const char &del) {
+[[maybe_unused]] std::vector<std::string> u::split(std::string &s, const char &del) {
     /** String split into vector with single char delimiter
      *
      * @param s : Give the String to split.
@@ -18,9 +15,9 @@ using namespace std;
      * @retuns vector : vector of strings
      *
      * **/
-    vector<string> ret;
-    stringstream ss(s);
-    string item;
+    std::vector<std::string> ret;
+    std::stringstream ss(s);
+    std::string item;
 
     while (getline(ss, item, del))
         ret.push_back(item);
@@ -28,7 +25,7 @@ using namespace std;
     return ret;
 }
 
-[[maybe_unused]] vector<string> u::split(std::string &s, const std::string &del) {
+[[maybe_unused]] std::vector<std::string> u::split(std::string &s, const std::string &del) {
     /** String split into vector with multi char delimiter
      *
      * @param s : Give the String to split.
@@ -37,10 +34,10 @@ using namespace std;
      *
      * **/
     size_t pos_start = 0, pos_end, delim_len = del.length();
-    string token;
-    vector<string> ret;
+    std::string token;
+    std::vector<std::string> ret;
 
-    while ((pos_end = s.find(del, pos_start)) != string::npos) {
+    while ((pos_end = s.find(del, pos_start)) != std::string::npos) {
         token = s.substr(pos_start, pos_end + pos_start);
         pos_start = pos_end + delim_len;
         ret.push_back(token);
@@ -50,7 +47,7 @@ using namespace std;
     return ret;
 }
 
-[[maybe_unused]] bool u::fileExists(const string &name) {
+[[maybe_unused]] bool u::fileExists(const std::string &name) {
     if (FILE *file = fopen(name.c_str(), "r")) {
         fclose(file);
         return true;
@@ -84,7 +81,7 @@ void u::presence_update(dpp::cluster &bot) {
         try {
             bot.set_presence(dpp::presence(dpp::ps_online, dpp::activity_type::at_watching, "the development of me."));
             ::sleep(120);
-        } catch (exception &e) {
+        } catch (std::exception &e) {
             bot.log(dpp::ll_error, fmt::format("FUCK, somethin went wron {0}", e.what()));
         }
     }
