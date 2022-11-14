@@ -16,6 +16,7 @@ namespace cfg {
         explicit Config(std::string &path);
 
         [[nodiscard]] const std::string &getToken() const;
+        [[nodiscard]] const std::string &getToken(const std::string& token_type) const;
 
         // SQL
         char sql_host[11] = "localhost";
@@ -28,6 +29,7 @@ namespace cfg {
     private:
         // Base bot config
         std::string token;
+        std::string dev_token;
         std::string path;
     };
 
