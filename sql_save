@@ -1,0 +1,22 @@
+
+// notify
+query << fmt::format("if exists(select * from salty_cpp_bot.ticket where server_id = {0}) then"
+                                             " update salty_cpp_bot.ticket set notify_channel = {1} where server_id = {0}; "
+                                             "else"
+                                             " insert into salty_cpp_bot.ticket (server_id, notify_channel) values ({0}, {1}); "
+                                             "end if;",
+                                             event.command.guild_id, channel_id);
+
+// category
+query << fmt::format("if exists(select * from salty_cpp_bot.ticket where server_id = {0}) then"
+                                             " update salty_cpp_bot.ticket set category_id = {1} where server_id = {0}; "
+                                             "else"
+                                             " insert into salty_cpp_bot.ticket (server_id, category_id) values ({0}, {1}); "
+                                             "end if;",
+                                             event.command.guild_id, category_id);
+
+//
+query << fmt::format(
+                    "if not exists(select * from ticket_access_roles where role_id='{1}') then"
+                        " insert into ticket_access_roles (server_id, role_id) values ('{0}', '{1}');"
+                    "end if; ", event.command.guild_id, role_id);

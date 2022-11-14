@@ -24,14 +24,23 @@ void ticket::init_ticket_commands(dpp::cluster &bot) {
     );
 
     ticket.add_option(
-            dpp::command_option(dpp::co_sub_command, "set", "Set category for new tickets.")
-                    .add_option(dpp::command_option(dpp::co_channel, "category", "Define category", false))
-                    .add_option(dpp::command_option(dpp::co_channel, "notify", "Define notify channel", false))
-                    .add_option(dpp::command_option(dpp::co_role, "role", "Define Supporter/Moderator role", false))
-                    .add_option(dpp::command_option(dpp::co_role, "role2", "Define Supporter/Moderator role2", false))
-                    .add_option(dpp::command_option(dpp::co_role, "role3", "Define Supporter/Moderator role3", false))
-                    .add_option(dpp::command_option(dpp::co_role, "role4", "Define Supporter/Moderator role4", false))
-                    .add_option(dpp::command_option(dpp::co_role, "role5", "Define Supporter/Moderator role5", false))
+            dpp::command_option(dpp::co_sub_command_group, "set", "Set Category, Notify, or Roles for new tickets.")
+                    .add_option(dpp::command_option(dpp::co_sub_command, "category", "set category for new tickets")
+                        .add_option(dpp::command_option(dpp::co_channel, "id", "Set the category id.", false)))
+                    .add_option(dpp::command_option(dpp::co_sub_command, "notify", "Set notify channel for new tickets") // set and delete
+                        .add_option(dpp::command_option(dpp::co_channel, "id", "Set the notify channel id.", false)))
+                    .add_option(dpp::command_option(dpp::co_sub_command, "roles", "Set Moderation roles for new tickets")
+                        .add_option(dpp::command_option(dpp::co_channel, "id", "Set role id", false)) // set and delete
+                        .add_option(dpp::command_option(dpp::co_channel, "id2", "Set role id", false))
+                        .add_option(dpp::command_option(dpp::co_channel, "id3", "Set role id", false))
+                        .add_option(dpp::command_option(dpp::co_channel, "id4", "Set role id", false))
+                        .add_option(dpp::command_option(dpp::co_channel, "id5", "Set role id", false)))
+    );
+
+    ticket.add_option(
+            dpp::command_option(dpp::co_sub_command, "remove", "Remove specific id's from the database.")
+                    .add_option(dpp::command_option(dpp::co_channel, "category", "Remove category", false))
+                    .add_option(dpp::command_option(dpp::co_channel, "notify", "Remove notify channel", false))
     );
 
     ticket.add_option(
@@ -316,7 +325,7 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
                 try {
                     event.edit_original_response(dpp::message("Can't reopen ticket, try again in a few minutes"));
 
-                // prevent edge case where the mod removes the channel before it can be reopend
+                // prevent edge case where the mod removes the channel before it can be re-opened
                 } catch (std::exception f) { return; }
             }
 
@@ -425,7 +434,20 @@ void ticket::ticket_commands(dpp::cluster &bot,
 
     }
 
-    if (sc.name == "set" and !sc.options.empty()) {
+    if (sc.name == "set") {
+        event.thinking(true);
+        short count = 0;
+        std::string output_string;
+
+        for (auto& i : sc.options) {
+
+        }
+
+        // event.edit_original_response(dpp::message(output_string).set_flags(dpp::m_ephemeral));
+    }
+
+
+    if (sc.name == "remove" and !sc.options.empty()) {
         event.thinking(true);
         short count = 0;
         std::string output_string;
@@ -439,14 +461,12 @@ void ticket::ticket_commands(dpp::cluster &bot,
 
                 output_string += fmt::format("<@&{0}> ", role_id);
 
-                query << fmt::format(
-                    "if not exists(select * from ticket_access_roles where role_id='{1}') then"
-                        " insert into ticket_access_roles (server_id, role_id) values ('{0}', '{1}');"
-                    "end if; ", event.command.guild_id, role_id);
+                query << fmt::format("delete from ticket_access_roles where server_id = {0} and role_id = {1}",
+                                     event.command.guild_id, role_id);
 
                 query.execute();
 
-                output_string += "for support added. ";
+                output_string += "removed. ";
             }
 
             if (i.name == "category") {
@@ -461,24 +481,17 @@ void ticket::ticket_commands(dpp::cluster &bot,
                     mysqlpp::Query query = c.query();
 
                     auto channel = confm.get<dpp::channel_map>()[category_id];
-                    if (!channel.is_category()) {
-                        auto f = fmt::format("<#{0}> is not a valid category. ", category_id);
-                        output_string += f;
-                    } else {
-                        query << fmt::format("if exists(select * from salty_cpp_bot.ticket where server_id = {0}) then"
-                                             " update salty_cpp_bot.ticket set category_id = {1} where server_id = {0}; "
-                                             "else"
-                                             " insert into salty_cpp_bot.ticket (server_id, category_id) values ({0}, {1}); "
-                                             "end if;",
-                                             event.command.guild_id, category_id);
 
-                        query.execute();
-                        output_string += fmt::format("Ticket category changed to: '<#{0}>'. ", category_id);
-                    }
+                    query << fmt::format(
+                            "update ticket set ticket.category_id = 0 where server_id = {0} and category_id = {1};",
+                                         event.command.guild_id, category_id);
 
-                    event.edit_original_response(dpp::message(output_string).set_flags(dpp::m_ephemeral));
+                    query.execute();
+                    output_string += fmt::format("Ticket category got removed. ", category_id);
+
+
+                    // event.edit_original_response(dpp::message(output_string).set_flags(dpp::m_ephemeral));
                 });
-                continue;
             }
 
             if (i.name == "notify") {
@@ -493,29 +506,24 @@ void ticket::ticket_commands(dpp::cluster &bot,
                     mysqlpp::Query query = c.query();
                     auto channel = confm.get<dpp::channel_map>()[channel_id];
 
-                    if (!channel.is_text_channel()) {
-                        output_string += fmt::format("<#{0}> is not a valid text channel. ", channel_id);
+                    query << fmt::format("if exists(select * from salty_cpp_bot.ticket where server_id = {0}) then"
+                                         " update salty_cpp_bot.ticket set notify_channel = {1} where server_id = {0}; "
+                                         "else"
+                                         " insert into salty_cpp_bot.ticket (server_id, notify_channel) values ({0}, {1}); "
+                                         "end if;",
+                                         event.command.guild_id, channel_id);
 
-                    } else {
-                        query << fmt::format("if exists(select * from salty_cpp_bot.ticket where server_id = {0}) then"
-                                             " update salty_cpp_bot.ticket set notify_channel = {1} where server_id = {0}; "
-                                             "else"
-                                             " insert into salty_cpp_bot.ticket (server_id, notify_channel) values ({0}, {1}); "
-                                             "end if;",
-                                             event.command.guild_id, channel_id);
+                    query.execute();
+                    output_string += fmt::format("Ticket mod notify channel changed to: '<#{0}>'. ", channel_id);
 
-                        query.execute();
-                        output_string += fmt::format("Ticket mod notify channel changed to: '<#{0}>'. ", channel_id);
-                    }
 
-                    event.edit_original_response(dpp::message(output_string).set_flags(dpp::m_ephemeral));
+                    /*event.edit_original_response(dpp::message(output_string).set_flags(dpp::m_ephemeral));*/
                 });
-                continue;
             }
             count++;
         }
 
-        // event.edit_original_response(dpp::message(output_string).set_flags(dpp::m_ephemeral));
+        event.edit_original_response(dpp::message(output_string).set_flags(dpp::m_ephemeral));
     }
 
     if (sc.name == "config") {
@@ -553,10 +561,6 @@ void ticket::ticket_commands(dpp::cluster &bot,
 
         em.add_field("Support Roles:", roles.str(), false);
         event.reply(dpp::message(event.command.channel_id, em));
-    }
-
-    if (sc.name == "change") {
-
     }
 
     if (sc.name == "enable") {
