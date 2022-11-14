@@ -123,27 +123,27 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
                     return;
                 }
 
-                auto t = confm.get<dpp::channel>();
+                auto new_ticket = confm.get<dpp::channel>();
 
                 mysqlpp::Query query = c.query();
 
                 query << fmt::format(
                         "insert into salty_cpp_bot.cur_tickets (server_id, user_id, ticket_id) values ({0}, {1}, {2})",
-                        guild.id, user.id, t.id);
+                        guild.id, user.id, new_ticket.id);
 
                 query.execute();
 
                 event.edit_original_response(dpp::message(
-                        fmt::format("Ticket got created {0}", t.get_mention())
+                        fmt::format("Ticket got created {0}", new_ticket.get_mention())
                 ).set_flags(dpp::m_ephemeral));
 
 
-                em.set_title(t.name)
+                em.set_title(new_ticket.name)
                   .set_color(0xbc3440)
                   .set_description("Welcome to your ticket, a Moderator will be there shortly.")
                   .set_timestamp(time(nullptr));
 
-                dpp::message msg(t.id, em);
+                dpp::message msg(new_ticket.id, em);
                 msg.add_component(dpp::component().add_component(
                                         dpp::component()
                                                 .set_type(dpp::cot_button)
@@ -157,8 +157,8 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
                 // notify mods when id is provided
                 if (notify_id > 0) {
                     dpp::embed e;
-                    e.set_title(fmt::format("{0} got created by {1}", t.name, event_cmd.usr.username))
-                     .set_description(fmt::format("Claimed by: {0}\nTicket: {1}", "None", t.get_mention()))
+                    e.set_title(fmt::format("{0} got created by {1}", new_ticket.name, event_cmd.usr.username))
+                     .set_description(fmt::format("Claimed by: {0}\nTicket: {1}", "None", new_ticket.get_mention()))
                      .set_timestamp(time(nullptr))
                      .set_color(0xbc3440);
 
@@ -289,10 +289,18 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
             bot.message_delete(event_cmd.message_id, channel.id);
             bot.channel_edit_permissions(channel.id, user_id, dpp::permissions::p_view_channel, 0, true);
 
-            // prevent rate limitation
+            // prevent rate limitation. works sometimes.
             ::sleep(5);
-            bot.channel_edit(channel.set_name(std::regex_replace(channel.name, std::regex("closed-"), "")));
-            event.edit_original_response(fmt::format("<@{0}> your ticket got Re-Opened.", user_id));
+            try {
+                bot.channel_edit(channel.set_name(std::regex_replace(channel.name, std::regex("closed-"), "")));
+                event.edit_original_response(fmt::format("<@{0}> your ticket got Re-Opened.", user_id));
+            } catch (std::exception e) {
+                try {
+                    event.edit_original_response(dpp::message("Can't reopen ticket, try again in a few minutes"));
+
+                // prevent edge case where the mod removes the channel before it can be reopend
+                } catch (std::exception f) { return; }
+            }
 
             return;
         }
@@ -512,6 +520,10 @@ void ticket::ticket_commands(dpp::cluster &bot,
         }
 
         em.add_field("Enabled", enabled ? "True" : "False", true);
+        em.add_field("Category for new ticket.", fmt::format("<#{0}>", category_id), true);
+        em.add_field("Notify channel for new tickets.", fmt::format("<#{0}>", notify_channel), true);
+        em.add_field("Created tickets on this server",  fmt::format("{0}", ++ticket_count), true);
+
         em.add_field("Support Roles:", roles.str(), false);
         event.reply(dpp::message(event.command.channel_id, em));
     }

@@ -27,7 +27,7 @@
  *  Global command: ticket
  *  Sub-commands:
  *      - create -> create init ticket message, enable ticket system
- *      set -> set channel for actions
+ *      - set -> set channel for actions
  *          >> category -> set category for new tickets
  *          >> notify -> set mod notify channel
  *      ? config -> change settings
