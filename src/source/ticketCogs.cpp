@@ -157,9 +157,10 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
                 // notify mods when id is provided
                 if (notify_id > 0) {
                     dpp::embed e;
-                    e.set_title(fmt::format("{0} got created by {1}", new_ticket.name, event_cmd.usr.username))
+                    e.set_title(fmt::format("{0} got created by {1}", new_ticket.name, event.command.usr.format_username()))
                      .set_description(fmt::format("Claimed by: {0}\nTicket: {1}", "None", new_ticket.get_mention()))
                      .set_timestamp(time(nullptr))
+                     .set_footer(fmt::format("{0}", new_ticket.id), bot.me.get_avatar_url())
                      .set_color(0xbc3440);
 
                     dpp::message mod_msg(notify_id, e);
@@ -168,10 +169,10 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
                                                             .set_type(dpp::cot_button)
                                                             .set_label("Claim")
                                                             .set_id("ticket_claim")
-                                                            .set_emoji("📑")
                                                             .set_style(dpp::cos_success)));
-
-                    bot.message_create(mod_msg);
+                    try {
+                        bot.message_create(mod_msg);
+                    } catch (std::exception e) {} // in case the bot cannot find the channel id, I will put something in there later.
 
                 }
             });
@@ -310,6 +311,19 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
         }
 
         if (event.custom_id == "ticket_claim") {
+            dpp::message orig_msg = event.command.msg;
+
+            dpp::embed &orig_em = orig_msg.embeds[0];
+            orig_em.set_description(
+                    std::regex_replace(orig_em.description,
+                                       std::regex("None"),
+                                       event.command.usr.get_mention()));
+
+            auto &orig_comp = orig_msg.components[0];
+            orig_comp.components[0].set_disabled(true);
+
+            bot.message_edit(orig_msg);
+            event.reply(dpp::message("Ticket claimed").set_flags(dpp::m_ephemeral));
             return;
         }
 
