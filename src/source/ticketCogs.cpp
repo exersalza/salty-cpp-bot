@@ -76,11 +76,13 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
 
             size_t category_id, notify_id;
             int ticket_count;
+            std::vector<size_t> mod_roles;
 
             mysqlpp::Query query = c.query();
             query << fmt::format("SELECT ticket.category_id, ticket.count, ticket.notify_channel, ticket.enabled FROM ticket WHERE ticket.server_id = '{0}'; "
-              "UPDATE salty_cpp_bot.ticket SET count=count + 1 WHERE ticket.server_id = '{0}'", event_cmd.guild_id);
-
+              "UPDATE salty_cpp_bot.ticket SET count=count + 1 WHERE ticket.server_id = '{0}';"
+              "select ticket_access_roles.role_id from ticket_access_roles where ticket_access_roles.server_id = {0};",
+                    event_cmd.guild_id);
 
             mysqlpp::StoreQueryResult res = query.store();
 
@@ -89,6 +91,13 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
             notify_id = res[0]["notify_channel"];
 
             short enabled = res[0]["enabled"];
+
+            query.store_next();
+            mysqlpp::StoreQueryResult res2 = query.store_next();
+
+            for (size_t i = 0; i < res2.num_rows(); ++i) {
+                mod_roles.push_back(res2[i]["role_id"]);
+            }
 
             u::kill_query(query);
 
@@ -111,9 +120,14 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
 
             channel.add_permission_overwrite(event_cmd.usr.id, dpp::overwrite_type::ot_member,
                                                 dpp::permissions::p_send_messages |
-                                                dpp::permissions::p_view_channel, 0);
+                                                dpp::permissions::p_view_channel, 0)
+                .add_permission_overwrite(guild.id, dpp::overwrite_type::ot_role, 0, dpp::permissions::p_view_channel);
 
-            channel.add_permission_overwrite(guild.id, dpp::overwrite_type::ot_role, 0, dpp::permissions::p_view_channel);
+            for (size_t role : mod_roles) {
+                channel.add_permission_overwrite(role,
+                                                 dpp::overwrite_type::ot_role,
+                                                 dpp::permissions::p_view_channel, 0);
+            }
 
 
             bot.channel_create(channel, [&, event, notify_id](const dpp::confirmation_callback_t &confm) {
@@ -140,7 +154,7 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
 
                 em.set_title(new_ticket.name)
                   .set_color(0xbc3440)
-                  .set_description("Welcome to your ticket, a Moderator will be there shortly.")
+                  .set_description(fmt::format("{0} Welcome to your ticket, a Moderator will be there shortly.", event.command.usr.get_mention()))
                   .set_timestamp(time(nullptr));
 
                 dpp::message msg(new_ticket.id, em);
@@ -188,6 +202,12 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
         }
 
         if (event.custom_id == "ticket_close") {
+            auto &channel = event.command.get_channel();
+
+            if (channel.name.find("closed-") != std::string::npos) {
+                event.reply(dpp::message("Ticket is already closed.").set_flags(dpp::m_ephemeral));
+                return;
+            }
 
             dpp::embed em;
 
@@ -247,7 +267,10 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
                 bot.message_delete(message_id, channel_id);
 
                 em.set_title("Admin Controls")
-                  .set_color(config.b_color);
+                  .set_description("Here you can do basic admin stuff.")
+                  .set_color(config.b_color)
+                  .set_footer("Kenexar.eu", bot.me.get_avatar_url())
+                  .set_timestamp(time(nullptr));
 
                 bot.message_create(dpp::message(channel_id, em).add_component(
                                         dpp::component().add_component(
@@ -260,12 +283,6 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
                                         dpp::component()
                                             .set_label("Reopen ticket")
                                             .set_id("ticket_reopen")
-                                            .set_type(dpp::cot_button)
-                                            .set_style(dpp::cos_secondary))
-                                        .add_component(
-                                        dpp::component()
-                                            .set_label("Archive ticket")
-                                            .set_id("ticket_archive")
                                             .set_type(dpp::cot_button)
                                             .set_style(dpp::cos_secondary))));
 
@@ -303,10 +320,6 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
                 } catch (std::exception f) { return; }
             }
 
-            return;
-        }
-
-        if (event.custom_id == "ticket_archive") {
             return;
         }
 
