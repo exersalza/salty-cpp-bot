@@ -10,6 +10,7 @@
 #include <mysql++/mysql++.h>
 
 #include "include/cogs.hpp"
+#include "include/help.hpp"
 #include "include/config.hpp"
 #include "include/ticketCogs.hpp"
 #include "include/economyCogs.hpp"
@@ -83,6 +84,8 @@ int main(int argc, char *argv[]) {
                 cog::regis_commands(bot);
                 ticket::init_ticket_events(bot, conn, config);
                 ticket::init_ticket_commands(bot);
+                cog::init_help_events(bot, conn, config);
+                cog::init_help_commands(bot);
             }
         }
 
