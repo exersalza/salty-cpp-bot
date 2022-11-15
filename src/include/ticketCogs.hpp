@@ -68,7 +68,6 @@ namespace ticket {
     void confm_error(const dpp::cluster &bot, const T &event, const dpp::confirmation_callback_t &confm);
 
     void change_state(const dpp::slashcommand_t &event, mysqlpp::Connection &c, const std::string& state, const int i_state);
-
 } // ticket
 
 

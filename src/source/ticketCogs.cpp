@@ -380,6 +380,7 @@ void ticket::confm_error(const dpp::cluster &bot, const T &event,
     bot.log(dpp::ll_error, fmt::format("FUCK Somethin went wron {}", err));
 }
 
+
 void ticket::ticket_commands(dpp::cluster &bot,
                              const dpp::slashcommand_t &event,
                              const dpp::command_interaction &cmd_data,
@@ -630,9 +631,6 @@ void ticket::ticket_commands(dpp::cluster &bot,
         change_state(event, c, "disabled", 0);
     }
 
-    if (sc.name == "init") {
-
-    }
 }
 
 void ticket::change_state(const dpp::slashcommand_t &event,
