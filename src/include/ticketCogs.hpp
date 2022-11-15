@@ -23,8 +23,12 @@
  *      >>| -> options
  *      - -> done
  *      [] -> mandatory arguments
- *      | -> to do combiner (for those that don't use intellij based ide's, they dont recognize to do's as one, when there not merged)
+ *      | -> to do combiner (for those that don't use intellij based Ide's, they dont recognize to do's as one, when there not merged)
  *  Global command: ticket
+ *  |
+ *  Ideas:
+ *      webhook implementation.
+ *  |
  *  Sub-commands:
  *      - create -> create init ticket message, enable ticket system
  *      - set -> set channel for actions
@@ -64,6 +68,7 @@ namespace ticket {
     void confm_error(const dpp::cluster &bot, const T &event, const dpp::confirmation_callback_t &confm);
 
     void change_state(const dpp::slashcommand_t &event, mysqlpp::Connection &c, const std::string& state, const int i_state);
+
 } // ticket
 
 
