@@ -10,24 +10,16 @@
 #include <nlohmann/json.hpp>
 #include <dpp/dpp.h>
 
-namespace economy {
+
+namespace ec {
     class Shop {
     public:
-        /// \param index : Give the Shop name to init from shopConfig.json
-        explicit Shop(std::string &index);
 
     private:
-        std::string index;
-        std::string disp_name;
+        explicit Shop(std::string &name);
+
+        std::string name;
         std::string desc;
-        json items;
-        std::string color = "0xffffff";
-    };
-
-    class Economy {
-
-    private:
-        std::vector<Shop> shops;
 
     };
 

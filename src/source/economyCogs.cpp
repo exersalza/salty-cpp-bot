@@ -11,7 +11,7 @@
 using json = nlohmann::json;
 
 
-economy::Shop::Shop(std::string &name) {
+ec::Shop::Shop(std::string &name) {
     std::fstream f("../shopConfig.json");
     json d = json::parse(f);
 

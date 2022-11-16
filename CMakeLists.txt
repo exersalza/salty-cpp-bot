@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 #[[add_subdirectory(flibs/DPP)]]
 
-add_executable(dcbot src/main.cpp src/include/config.hpp src/source/config.cpp src/source/utils.cpp src/include/cogs.hpp src/include/economyCogs.hpp src/source/ticketCogs.cpp src/include/ticketCogs.hpp src/source/economyCogs.cpp src/source/cogs.cpp src/include/main.hpp src/source/eventLoops.cpp src/include/eventLoops.hpp src/source/help.cpp src/include/help.hpp)
+add_executable(dcbot src/main.cpp src/include/config.hpp src/source/config.cpp src/source/utils.cpp src/include/cogs.hpp src/include/economyCogs.hpp src/source/ticketCogs.cpp src/include/ticketCogs.hpp src/source/economyCogs.cpp src/source/cogs.cpp src/include/main.hpp src/source/eventLoops.cpp src/include/eventLoops.hpp src/source/help.cpp src/include/help.hpp src/source/games.cpp src/include/games.hpp)
 include_directories(${Dpp_INCLUDE_DIRS})
 include_directories(/usr/include/mysql/)
 include_directories(libs/)
