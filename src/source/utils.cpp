@@ -3,6 +3,7 @@
 // I'm driving in a cadillac, cadillac, I won't give it back, give it back.
 
 #include <string>
+#include <unistd.h>
 #include <fmt/format.h>
 
 #include "../include/utils.hpp"

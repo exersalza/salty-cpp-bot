@@ -4,6 +4,7 @@
 
 #include <regex>
 #include <iostream>
+#include <unistd.h>
 #include <dpp/dpp.h>
 #include <fmt/format.h>
 

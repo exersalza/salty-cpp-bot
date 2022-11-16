@@ -5,6 +5,7 @@
 
 #include <regex>
 #include <iostream>
+#include <unistd.h>
 #include <dpp/dpp.h>
 #include <fmt/format.h>
 #include <mysql++/mysql++.h>
@@ -21,7 +22,7 @@ int main(int argc, char *argv[]) {
     // Normal config shit
     std::string path = "../config.json";
     cfg::Config config = cfg::Config(path);
-    const std::string &token = config.getToken();
+    const std::string &token = config.getToken("dev");
 
     // SQL Shit
     mysqlpp::Connection conn;

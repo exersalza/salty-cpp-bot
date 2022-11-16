@@ -2,6 +2,8 @@
 // Created by julian on 11/8/22.
 //
 
+#include <unistd.h>
+
 #include "../include/eventLoops.hpp"
 
 
