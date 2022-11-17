@@ -8,6 +8,8 @@
 
 #include "../include/utils.hpp"
 
+using namespace Poco;
+
 [[maybe_unused]] std::vector<std::string> u::split(std::string &s, const char &del) {
     /** String split into vector with single char delimiter
      *
@@ -48,7 +50,7 @@
     return ret;
 }
 
-[[maybe_unused]] bool u::fileExists(const std::string &name) {
+[[maybe_unused]] bool u::file_exists(const std::string &name) {
     if (FILE *file = fopen(name.c_str(), "r")) {
         fclose(file);
         return true;
@@ -85,5 +87,26 @@ void u::presence_update(dpp::cluster &bot) {
         } catch (std::exception &e) {
             bot.log(dpp::ll_error, fmt::format("FUCK, somethin went wron {0}", e.what()));
         }
+    }
+}
+
+void u::requests(const Poco::URI &uri) {
+    try {
+        Net::HTTPClientSession session(uri.getHost(), uri.getPort());
+
+        std::string path = uri.getPathAndQuery();
+        if (path.empty()) path = '/';
+
+        Net::HTTPRequest req(Net::HTTPRequest::HTTP_GET, path, Net::HTTPMessage::HTTP_1_1);
+
+        Net::HTTPResponse res;
+
+        std::cout << res.getStatus() << " " << res.getStatus() << std::endl;
+
+
+        auto &is = session.receiveResponse(res);
+        StreamCopier::copyStream(is, std::cout);
+    } catch (std::exception &ex) {
+        std::cerr << ex.what() << std::endl;
     }
 }

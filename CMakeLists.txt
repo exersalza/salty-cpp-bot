@@ -14,9 +14,9 @@ include_directories(libs/)
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath -Wl,/usr/local/lib")
 
 find_package(fmt REQUIRED)
-find_package(nlohmann_json REQUIRED)
+find_package(Poco REQUIRED Net)
 
-target_link_libraries(${PROJECT_NAME} dpp fmt mysqlpp nlohmann_json::nlohmann_json)
+target_link_libraries(${PROJECT_NAME} dpp fmt mysqlpp Poco::Net )
 target_include_directories(${PROJECT_NAME} PRIVATE
         #[[flibs/DPP/include]]
         )

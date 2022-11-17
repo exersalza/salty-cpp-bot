@@ -23,5 +23,5 @@ g::Player::Player(std::string name) : name(std::move(name)) {
 }
 
 int g::BjPlayer::updateCardCount() {
-
+    return 0;
 }

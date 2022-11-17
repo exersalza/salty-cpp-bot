@@ -17,7 +17,7 @@ void ticket::init_ticket_commands(dpp::cluster &bot) {
 
     dpp::slashcommand ticket("ticket", "ticket base command", bot.me.id);
 
-    ticket.set_default_permissions(dpp::permission(dpp::p_administrator));
+    ticket.set_default_permissions(dpp::permissions(dpp::p_administrator));
 
     ticket.add_option(
             dpp::command_option(dpp::co_sub_command, "create", "Create Ticket message at current/given channel.").
@@ -290,12 +290,14 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
                                         dpp::component()
                                             .set_type(dpp::cot_button)
                                             .set_id("ticket_delete")
+                                            .set_emoji("🗑️")
                                             .set_style(dpp::cos_danger)
                                             .set_label("Delete ticket"))
                                         .add_component(
                                         dpp::component()
                                             .set_label("Reopen ticket")
                                             .set_id("ticket_reopen")
+                                            .set_emoji("🔓")
                                             .set_type(dpp::cot_button)
                                             .set_style(dpp::cos_secondary))));
 

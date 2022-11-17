@@ -12,9 +12,10 @@
 
 #include "include/cogs.hpp"
 #include "include/help.hpp"
+#include "include/admin.hpp"
+#include "include/utils.hpp"
 #include "include/config.hpp"
 #include "include/ticketCogs.hpp"
-#include "include/economyCogs.hpp"
 
 
 
@@ -22,7 +23,7 @@ int main(int argc, char *argv[]) {
     // Normal config shit
     std::string path = "../config.json";
     cfg::Config config = cfg::Config(path);
-    const std::string &token = config.getToken("dev");
+    const std::string &token = config.getToken();
 
     // SQL Shit
     mysqlpp::Connection conn;
@@ -40,8 +41,6 @@ int main(int argc, char *argv[]) {
     dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
 
     dpp::cache<dpp::message> bot_message_cache;
-    std::string shop_name = "test";
-    economy::Shop shop(shop_name);
 
     bot.on_log(dpp::utility::cout_logger());
 
@@ -80,11 +79,14 @@ int main(int argc, char *argv[]) {
                 });
 
                 thr_ping_loop1.detach();
-                argc = 0;
+                --argc;
 
+                // manuel command registration, IDK how to do it otherwise.
                 cog::regis_commands(bot);
                 ticket::init_ticket_events(bot, conn, config);
                 ticket::init_ticket_commands(bot);
+                admin::init_admin_events(bot);
+                admin::init_admin_commands(bot);
                 cog::init_help_events(bot, conn, config);
                 cog::init_help_commands(bot);
             }
@@ -107,6 +109,10 @@ int main(int argc, char *argv[]) {
 
         if (interaction.get_command_name() == "ticket") {
             ticket::ticket_commands(bot, event, cmd_data, conn, config);
+        }
+
+        if (interaction.get_command_name() == "admin") {
+            admin::admin_commands(bot, event, cmd_data);
         }
 
         if (interaction.get_command_name() == "ping") {
