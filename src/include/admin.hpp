@@ -6,8 +6,9 @@
 #define DCBOT_ADMIN_HPP
 
 #include <dpp/dpp.h>
-#include <Poco/URI.h>
+#include <fmt/format.h>
 
+#include "config.hpp"
 #include "utils.hpp"
 
 namespace admin {
@@ -16,7 +17,8 @@ namespace admin {
 
     void admin_commands(dpp::cluster &bot,
                         const dpp::slashcommand_t &event,
-                        const dpp::command_interaction &cmd_data);
+                        const dpp::command_interaction &cmd_data,
+                        const cfg::Config &conf);
 
 };
 

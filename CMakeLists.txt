@@ -16,7 +16,7 @@ SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath -Wl,/usr/local/
 find_package(fmt REQUIRED)
 find_package(Poco REQUIRED Net)
 
-target_link_libraries(${PROJECT_NAME} dpp fmt mysqlpp Poco::Net )
+target_link_libraries(${PROJECT_NAME} dpp fmt mysqlpp Poco::Net curl)
 target_include_directories(${PROJECT_NAME} PRIVATE
         #[[flibs/DPP/include]]
         )

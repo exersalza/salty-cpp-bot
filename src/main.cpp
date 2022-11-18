@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
         }
 
         if (interaction.get_command_name() == "admin") {
-            admin::admin_commands(bot, event, cmd_data);
+            admin::admin_commands(bot, event, cmd_data, config);
         }
 
         if (interaction.get_command_name() == "ping") {

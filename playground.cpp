@@ -6,18 +6,21 @@
 #define BUFFER_SIZE 512
 
 int stoc(const std::string &src, char* dest) {
-    for (auto i : src) {
-        std::cout << i;
+    for (int i = 0; i < src.length(); ++i) {
+        dest[i] = src[i];
     }
-    std::cout << std::endl;
+
     return 0;
 }
 
 int main() {
-    char dest[BUFFER_SIZE];
     std::string src = "some string";
+    char dest[512];
+    size_t c = 0;
 
     stoc(src, dest);
+
+    std::cout << dest << std::endl;
 
     return 0;
 }

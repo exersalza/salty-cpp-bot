@@ -8,7 +8,6 @@
 
 #include "../include/utils.hpp"
 
-using namespace Poco;
 
 [[maybe_unused]] std::vector<std::string> u::split(std::string &s, const char &del) {
     /** String split into vector with single char delimiter
@@ -90,23 +89,39 @@ void u::presence_update(dpp::cluster &bot) {
     }
 }
 
-void u::requests(const Poco::URI &uri) {
-    try {
-        Net::HTTPClientSession session(uri.getHost(), uri.getPort());
+static size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
+    ((std::string*)userp)->append((char*)contents, size * nmemb);
+    return size * nmemb;
+}
 
-        std::string path = uri.getPathAndQuery();
-        if (path.empty()) path = '/';
-
-        Net::HTTPRequest req(Net::HTTPRequest::HTTP_GET, path, Net::HTTPMessage::HTTP_1_1);
-
-        Net::HTTPResponse res;
-
-        std::cout << res.getStatus() << " " << res.getStatus() << std::endl;
+std::string u::requests(const char* url) {
+    CURL *curl;
+    CURLcode cres;
+    std::string readBuffer;
 
 
-        auto &is = session.receiveResponse(res);
-        StreamCopier::copyStream(is, std::cout);
-    } catch (std::exception &ex) {
-        std::cerr << ex.what() << std::endl;
+    curl = curl_easy_init();
+
+    if (curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, url);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+        cres = curl_easy_perform(curl);
+        curl_easy_cleanup(curl);
     }
+
+    return readBuffer;
+}
+
+int u::stoc(const std::string &src, char* dest) {
+    try {
+        for (int i = 0; i < src.length(); ++i) {
+            dest[i] = src[i];
+        }
+    } catch (std::exception &e) {
+        std::cerr << e.what() << std::endl;
+        return -1;
+    }
+
+    return 0;
 }

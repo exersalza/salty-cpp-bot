@@ -7,5 +7,8 @@ make: playground.cpp
 run:
 	./a.out
 
+makerun:
+	make && make run
+
 clean:
 	rm *.out

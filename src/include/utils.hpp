@@ -7,11 +7,7 @@
 #include <vector>
 #include <string>
 #include <dpp/dpp.h>
-#include <Poco/Net/HTTPRequest.h>
-#include <Poco/Net/HTTPResponse.h>
-#include <Poco/Net/HTTPClientSession.h>
-#include <Poco/URI.h>
-#include <Poco/StreamCopier.h>
+#include <curl/curl.h>
 #include <mysql++/query.h>
 
 
@@ -27,9 +23,8 @@ namespace u {
 
     void presence_update(dpp::cluster &bot);
 
-    void requests(const Poco::URI &uri);
-
-    int do_request(Poco::Net::HTTPClientSession &session, Poco::Net::HTTPRequest &request);
+    std::string requests(const char* url);
+    int stoc(const std::string &src, char* dest);
 } // u
 
 #endif // DCBOT_UTILS_HPP
