@@ -19,10 +19,13 @@ void admin::init_admin_commands(dpp::cluster &bot) {
                                                     true)) // force the user to supply a file.
                                             .add_option(dpp::command_option(
                                                     dpp::co_string, "title",
-                                                    "Set a title, will only work when embed is on true."))
+                                                    "Set a title."))
                                             .add_option(dpp::command_option(
                                                     dpp::co_boolean, "embed",
-                                                    "Is the message worth to be send as an Embed?")));
+                                                    "Is the message worth to be send as an Embed? Standard is false."))
+                                            .add_option(dpp::command_option(
+                                                    dpp::co_boolean, "server_image",
+                                                    "Will set the server image as thumbnail image.")));
 
     bot.global_command_create(admin);
 }
@@ -42,12 +45,17 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
 
     if (sc.name == "send") {
         bool is_embed = false;
+        bool set_server_image = false;
         std::string title;
         std::string res;
 
         for (auto &i : sc.options) {
             if (i.name == "embed") {
                 is_embed = sc.get_value<bool>(c);
+            }
+
+            if (i.name == "server_image") {
+                set_server_image = sc.get_value<bool>(c);
             }
 
             if (i.name == "file") {
@@ -81,12 +89,19 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
 
             em.set_title(title)
               .set_description(res)
-              .set_color(conf.b_color);
+              .set_color(conf.b_color)
+              .set_footer("Kenexar.eu", bot.me.get_avatar_url())
+              .set_timestamp(time(nullptr));
 
-            event.reply(dpp::message(event.command.channel_id, em));
+            if (set_server_image)
+                em.set_thumbnail(event.command.get_guild().get_icon_url());
+
+            bot.message_create(dpp::message(event.command.channel_id, em));
         } else {
-            event.reply(dpp::message(event.command.channel_id, fmt::format("**{0}**\n\n{1}", title, res)));
+            bot.message_create(dpp::message(event.command.channel_id,
+                                            fmt::format("**{0}**\n\n{1}", title, res)));
         }
 
+        event.reply(dpp::message(event.command.channel_id, "Message created.").set_flags(dpp::m_ephemeral));
     }
 }
