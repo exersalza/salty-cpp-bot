@@ -103,6 +103,20 @@ int main(int argc, char *argv[]) {
         }
     });
 
+    bot.on_message_create([&bot](const dpp::message_create_t &event) {
+        if (event.msg.author.is_bot())
+            return;
+
+
+        std::string msg_content = event.msg.content;
+        std::vector<std::string> splitet_msg_cont = u::split(msg_content);
+
+        if (u::stolower(splitet_msg_cont[0]) == "hello"
+            && u::stolower(splitet_msg_cont[1]) == "world!")
+            event.reply("World Hello!");
+
+    });
+
     bot.on_slashcommand([&bot, &conn, &config](const dpp::slashcommand_t &event) {
         dpp::interaction interaction = event.command;
         dpp::command_interaction cmd_data = interaction.get_command_interaction();

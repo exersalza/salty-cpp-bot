@@ -8,6 +8,39 @@
 
 #include "../include/utils.hpp"
 
+[[maybe_unused]] std::string u::stolower(const std::string &name) {
+    std::stringstream ret;
+    for (auto c : name) {
+        if (c != ' ')
+            c = tolower(c);
+
+        ret << (char)c;
+    }
+
+    return ret.str();
+}
+
+[[maybe_unused]] std::string u::stoupper(const std::string &name) {
+    std::stringstream ret;
+    for (auto c : name) {
+        if (c != ' ')
+            c = toupper(c);
+
+        ret << (char)c;
+    }
+
+    return ret.str();
+}
+
+[[maybe_unused]] std::vector<std::string> u::split(std::string &s) {
+    /** String split into vector with single char delimiter
+     *
+     * @param s : Give the String to split.
+     * @retuns vector : vector of strings
+     *
+     * **/
+    return u::split(s, ' ');
+}
 
 [[maybe_unused]] std::vector<std::string> u::split(std::string &s, const char &del) {
     /** String split into vector with single char delimiter
@@ -115,9 +148,9 @@ std::string u::requests(const char* url) {
 
 int u::stoc(const std::string &src, char* dest) {
     try {
-        for (int i = 0; i < src.length(); ++i) {
+        for (int i = 0; i < src.length(); ++i)
             dest[i] = src[i];
-        }
+
     } catch (std::exception &e) {
         std::cerr << e.what() << std::endl;
         return -1;

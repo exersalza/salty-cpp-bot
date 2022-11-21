@@ -24,9 +24,11 @@ void ticket::init_ticket_commands(dpp::cluster &bot) {
                     add_option(dpp::command_option(dpp::co_channel, "channel", "Define channel", false))
     );
 
-    ticket.add_option(dpp::command_option(dpp::co_sub_command_group, "set", "Set Category, Notify, or Roles for new tickets.")
+    ticket.add_option(dpp::command_option(dpp::co_sub_command_group, "set", "Set Category, Notify, Max Ticket Count or Roles for new tickets.")
                         .add_option(dpp::command_option(dpp::co_sub_command, "category", "set category for new tickets")
                             .add_option(dpp::command_option(dpp::co_channel, "id", "Set the category id.", false)))
+                        .add_option(dpp::command_option(dpp::co_sub_command, "maxticketcount", "Set the max tickets that a user can open.")
+                            .add_option(dpp::command_option(dpp::co_integer, "id", "Set the category id.", true)))
                         .add_option(dpp::command_option(dpp::co_sub_command, "notify", "Set notify channel for new tickets") // set and delete
                             .add_option(dpp::command_option(dpp::co_channel, "id", "Set the notify channel id.", false)))
                         .add_option(dpp::command_option(dpp::co_sub_command, "roles", "Set Moderation roles for new tickets")
@@ -89,42 +91,58 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
 
             size_t category_id, notify_id;
             int ticket_count;
+            int max_ticket_count;
             std::vector<size_t> mod_roles;
 
             mysqlpp::Query query = c.query();
-            query << fmt::format("SELECT ticket.category_id, ticket.count, ticket.notify_channel, ticket.enabled FROM ticket WHERE ticket.server_id = '{0}'; "
+            query << fmt::format("SELECT ticket.category_id, ticket.count, ticket.notify_channel, ticket.enabled, "
+                                 "ticket.max_ticket FROM ticket WHERE ticket.server_id = '{0}'; "
               "UPDATE salty_cpp_bot.ticket SET count=count + 1 WHERE ticket.server_id = '{0}';"
+              "select count(*) from cur_tickets where server_id = {0} and user_id = {1};"
               "select ticket_access_roles.role_id from ticket_access_roles where ticket_access_roles.server_id = {0};",
-                    event_cmd.guild_id);
+                    event_cmd.guild_id, event_cmd.usr.id);
 
             mysqlpp::StoreQueryResult res = query.store();
 
             category_id = res[0]["category_id"];
             ticket_count = res[0]["count"];
             notify_id = res[0]["notify_channel"];
+            max_ticket_count = res[0]["max_ticket"];
 
             short enabled = res[0]["enabled"];
 
-            query.store_next();
-            mysqlpp::StoreQueryResult res2 = query.store_next();
+            if (!enabled) {
+                event.edit_original_response(dpp::message("Ticket's are not enabled, contact an Moderator when you want to create a Ticket."));
+                u::kill_query(query);
+                return;
+            }
 
-            for (size_t i = 0; i < res2.num_rows(); ++i) {
-                mod_roles.push_back(res2[i]["role_id"]);
+            query.store_next();
+
+            auto res_cur_ticket = query.store_next();
+            int usr_cur_ticket = res_cur_ticket[0][0];
+
+            if (max_ticket_count) {
+                if (max_ticket_count < usr_cur_ticket) {
+                    event.edit_original_response(dpp::message("You have already to many tickets open, please close one first to open another one."));
+                    u::kill_query(query);
+                    return;
+                }
+            }
+
+            mysqlpp::StoreQueryResult role_res = query.store_next();
+
+            for (size_t i = 0; i < role_res.num_rows(); ++i) {
+                mod_roles.push_back(role_res[i]["role_id"]);
             }
 
             u::kill_query(query);
-
-            if (!enabled) {
-                event.edit_original_response(dpp::message("Ticket's are not enabled, contact an Moderator when you want to create a Ticket."));
-                return;
-            }
 
             dpp::embed em;
             dpp::channel channel;
             std::string channel_mention;
             dpp::guild guild = event_cmd.get_guild();
             dpp::user user = event_cmd.usr;
-
 
             channel.set_name(fmt::format("ticket-{0}", ticket_count + 1))
                     .set_type(dpp::channel_type::CHANNEL_TEXT)
@@ -403,6 +421,8 @@ void ticket::ticket_commands(dpp::cluster &bot,
         {
             query << fmt::format("if not exists(select * from ticket where server_id='{0}') then"
                                     " insert into ticket (server_id) values ('{0}');"
+                                 "else"
+                                    " update ticket set ticket.enabled = 1 where server_id = {0}; "
                                  "end if; ", event.command.guild_id);
 
             query.execute();
@@ -540,6 +560,33 @@ void ticket::ticket_commands(dpp::cluster &bot,
                 event.edit_original_response(fmt::format("<#{0}> was set as new Notify channel.", channel_id));
             });
         }
+
+        if (sub.name.find("maxticketcount") != std::string::npos) {
+            long count = 0;
+
+            if (!sub.options.empty())
+                count = sub.get_value<long>(0);
+
+            if (count > INT_MAX) {
+                event.edit_original_response(dpp::message(event.command.channel_id,
+                                         fmt::format("Max Ticket count can't be higher then {0}", INT_MAX)).set_flags(64)); // 64 = dpp::m_ephemeral
+                return;
+            }
+
+            mysqlpp::Query query = c.query();
+            query << fmt::format("if exists(select count(*) from ticket where server_id = {0}) then"
+                                 " update ticket set max_ticket = {1} where server_id = {0}; "
+                                 "else"
+                                 " insert into ticket (server_id, max_ticket) values ({0}, {1}); "
+                                 "end if;", event.command.guild_id, count);
+
+            query.execute();
+
+            event.edit_original_response(dpp::message(event.command.channel_id,
+                                                      fmt::format("{0} was setted a new max count. To deactivate the limit use 0 as count.", count)));
+
+
+        }
     }
 
     if (sc.name == "remove" and !sc.options.empty()) {
@@ -590,6 +637,7 @@ void ticket::ticket_commands(dpp::cluster &bot,
     }
 
     if (sc.name == "config") {
+        //TODO: send empty role when no is given, otherwise error
         em.set_title("Ticket System configuration")
           .set_description(fmt::format("Config for {0}", event.command.get_guild().name))
           .set_color(conf.b_color)
@@ -597,11 +645,16 @@ void ticket::ticket_commands(dpp::cluster &bot,
           .set_timestamp(time(nullptr));
 
         mysqlpp::Query query = c.query();
-        query << fmt::format("select ticket.enabled, ticket.category_id, ticket.ticket_title, "
-                 "ticket.notify_channel, ticket.count from salty_cpp_bot.ticket where server_id = {0};"
-                 "select ticket_access_roles.role_id from ticket_access_roles where server_id = {0};", event.command.guild_id);
+        query << fmt::format("if not exists(select * from ticket where server_id={0}) then"
+                             " insert into ticket (server_id, enabled) values ({0}, 0); "
+                             "end if;"
+                             "select ticket.enabled, ticket.category_id, ticket.ticket_title, "
+                             "ticket.notify_channel, ticket.count from salty_cpp_bot.ticket where server_id = {0};"
+                             "select ticket_access_roles.role_id from ticket_access_roles where server_id = {0};",
+                             event.command.guild_id);
 
-        mysqlpp::StoreQueryResult res = query.store();
+        query.store();
+        mysqlpp::StoreQueryResult res = query.store_next();
 
         bool enabled = res[0]["enabled"];
         int ticket_count = res[0]["count"];
@@ -620,9 +673,9 @@ void ticket::ticket_commands(dpp::cluster &bot,
         em.add_field("Enabled", enabled ? "True" : "False", true);
         em.add_field("Category for new ticket.", fmt::format("<#{0}>", category_id), true);
         em.add_field("Notify channel for new tickets.", fmt::format("<#{0}>", notify_channel), true);
-        em.add_field("Created tickets on this server",  fmt::format("{0}", ++ticket_count), true);
+        em.add_field("Created tickets on this server",  fmt::format("{0}", ticket_count), true);
 
-        em.add_field("Support Roles:", roles.str(), false);
+        em.add_field("Support Roles:", ((roles.str()).length() != 0) ? roles.str() : "No Support roles given", false);
         event.reply(dpp::message(event.command.channel_id, em));
     }
 
