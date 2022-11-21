@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
         }
     });
 
-    bot.on_message_create([&bot](const dpp::message_create_t &event) {
+    bot.on_message_create([](const dpp::message_create_t &event) {
         if (event.msg.author.is_bot())
             return;
 

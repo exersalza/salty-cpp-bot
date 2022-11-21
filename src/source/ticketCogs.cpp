@@ -27,7 +27,7 @@ void ticket::init_ticket_commands(dpp::cluster &bot) {
     ticket.add_option(dpp::command_option(dpp::co_sub_command_group, "set", "Set Category, Notify, Max Ticket Count or Roles for new tickets.")
                         .add_option(dpp::command_option(dpp::co_sub_command, "category", "set category for new tickets")
                             .add_option(dpp::command_option(dpp::co_channel, "id", "Set the category id.", false)))
-                        .add_option(dpp::command_option(dpp::co_sub_command, "maxticketcount", "Set the max tickets that a user can open.")
+                        .add_option(dpp::command_option(dpp::co_sub_command, "maxticketcount", "Set the max tickets that a user can open. You can enter 0 to deactivate the Limit.")
                             .add_option(dpp::command_option(dpp::co_integer, "id", "Set the category id.", true)))
                         .add_option(dpp::command_option(dpp::co_sub_command, "notify", "Set notify channel for new tickets") // set and delete
                             .add_option(dpp::command_option(dpp::co_channel, "id", "Set the notify channel id.", false)))
@@ -584,8 +584,6 @@ void ticket::ticket_commands(dpp::cluster &bot,
 
             event.edit_original_response(dpp::message(event.command.channel_id,
                                                       fmt::format("{0} was setted a new max count. To deactivate the limit use 0 as count.", count)));
-
-
         }
     }
 
