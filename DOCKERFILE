@@ -1,3 +1,6 @@
 #syntax=docker/dockerfile:1
 FROM archlinux
 COPY . home
+RUN pacman -Syyu --noconfirm
+RUN pacman -S git curl openssl cmake gcc make fmt nlohmann-json vim --noconfirm
+

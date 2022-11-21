@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 
 #[[add_subdirectory(flibs/DPP)]]
+#[[add_subdirectory(flibs/)]]
 
 add_executable(dcbot src/main.cpp src/include/config.hpp src/source/config.cpp src/source/utils.cpp src/include/cogs.hpp src/include/economyCogs.hpp src/source/ticketCogs.cpp src/include/ticketCogs.hpp src/source/economyCogs.cpp src/source/cogs.cpp src/include/main.hpp src/source/eventLoops.cpp src/include/eventLoops.hpp src/source/help.cpp src/include/help.hpp src/source/games.cpp src/include/games.hpp src/source/admin.cpp src/include/admin.hpp src/source/twitchIntegration.cpp src/include/twitchIntegration.hpp)
 include_directories(${Dpp_INCLUDE_DIRS})
@@ -14,9 +15,10 @@ include_directories(libs/)
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath -Wl,/usr/local/lib")
 
 find_package(fmt REQUIRED)
-find_package(Poco REQUIRED Net)
 
-target_link_libraries(${PROJECT_NAME} dpp fmt mysqlpp Poco::Net curl)
+target_link_libraries(${PROJECT_NAME} dpp fmt mysqlpp curl)
 target_include_directories(${PROJECT_NAME} PRIVATE
-        #[[flibs/DPP/include]]
+        flibs/DPP/include
+        flibs/libcurl-openssl-1.0/include
+        flibs/mysql++/include
         )
