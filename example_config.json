@@ -1,9 +1,5 @@
 {
   "token": "",
   "dev_token": "",
-  "host": "localhost",
-  "user": "local",
-  "db": "salty_cpp_bot",
-  "password": "",
   "em_color": "0xbc3440"
 }
