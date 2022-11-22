@@ -16,6 +16,11 @@ namespace cog {
 
     void init_help_commands(dpp::cluster &bot);
 
+    void help_commands(dpp::cluster &bot,
+                    const dpp::slashcommand_t &event,
+                    const dpp::command_interaction &cmd_data,
+                    const cfg::Config &conf);
+
 
 } // glob
 

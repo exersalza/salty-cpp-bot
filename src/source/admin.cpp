@@ -104,5 +104,4 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
 
         event.reply(dpp::message(event.command.channel_id, "Message created.").set_flags(dpp::m_ephemeral));
     }
-
 }

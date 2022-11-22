@@ -18,10 +18,9 @@
 #include "include/ticketCogs.hpp"
 
 
-
 int main(int argc, char *argv[]) {
     // Normal config shit
-    std::string path = "../config.json";
+    std::string path = "config.json";
     cfg::Config config = cfg::Config(path);
     const std::string &token = config.getToken();
 
@@ -127,6 +126,10 @@ int main(int argc, char *argv[]) {
 
         if (interaction.get_command_name() == "admin") {
             admin::admin_commands(bot, event, cmd_data, config);
+        }
+
+        if (interaction.get_command_name() == "help") {
+            cog::help_commands(bot, event, cmd_data, config);
         }
 
         if (interaction.get_command_name() == "ping") {
