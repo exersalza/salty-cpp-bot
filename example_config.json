@@ -1,5 +1,10 @@
 {
   "token": "",
   "dev_token": "",
+
+  "db": "",
+  "host": "",
+  "user": "",
+  "password": "",
   "em_color": "0xbc3440"
 }

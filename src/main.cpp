@@ -28,8 +28,8 @@ int main(int argc, char *argv[]) {
     mysqlpp::Connection conn;
     conn.set_option(new mysqlpp::MultiStatementsOption(true));
 
-    conn.connect(config.sql_db, config.sql_host,
-                 config.sql_user, config.sql_password);
+    conn.connect(config.sql["db"], config.sql["host"],
+                 config.sql["user"], config.sql["password"]);
 
 
     if (!conn.connected()) {
@@ -68,8 +68,8 @@ int main(int argc, char *argv[]) {
                         if (!conn.ping()) {
                             bot.log(dpp::ll_error, "Ping to db failed, tryn to reconnect.");
 
-                            conn.connect(config.sql_db, config.sql_host,
-                                         config.sql_user, config.sql_password);
+                            conn.connect(config.sql["db"], config.sql["host"],
+                                         config.sql["user"], config.sql["password"]);
                             sleep(30);
                             continue;
                         }
