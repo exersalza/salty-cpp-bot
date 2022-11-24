@@ -12,7 +12,6 @@
 #include "utils.hpp"
 
 namespace admin {
-    void init_admin_commands(dpp::cluster &bot);
     void init_admin_events(dpp::cluster &bot);
 
     void admin_commands(dpp::cluster &bot,

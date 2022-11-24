@@ -10,26 +10,26 @@
 #include <fmt/format.h>
 #include <mysql++/mysql++.h>
 
-#include "include/cogs.hpp"
 #include "include/help.hpp"
 #include "include/admin.hpp"
 #include "include/utils.hpp"
 #include "include/config.hpp"
 #include "include/ticketCogs.hpp"
+#include "include/initCommands.hpp"
 
 
 int main(int argc, char *argv[]) {
     // Normal config shit
     std::string path = "config.json";
     cfg::Config config = cfg::Config(path);
+    cfg::sql sql = config.getSqlConf();
     const std::string &token = config.getToken();
 
     // SQL Shit
     mysqlpp::Connection conn;
     conn.set_option(new mysqlpp::MultiStatementsOption(true));
 
-    conn.connect(config.sql["db"], config.sql["host"],
-                 config.sql["user"], config.sql["password"]);
+    conn.connect(sql.db, sql.host, sql.user, sql.password);
 
 
     if (!conn.connected()) {
@@ -37,13 +37,17 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
+    mysqlpp::Query query = conn.query();
+    query << "select count(*) from ticket";
+    auto res = query.store();
+
     dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
 
     dpp::cache<dpp::message> bot_message_cache;
 
     bot.on_log(dpp::utility::cout_logger());
 
-    bot.on_ready([&bot, &argc, &argv, &conn, &config](const dpp::ready_t &event) {
+    bot.on_ready([&bot, &argc, &argv, &conn, &sql, &config](const dpp::ready_t &event) {
         if (dpp::run_once<struct register_bot_commands>()) {
             if (argc == 2 and strcmp(argv[1], "--init-commands") != 0) {
                 std::thread thr_presence([&bot]() {
@@ -62,14 +66,13 @@ int main(int argc, char *argv[]) {
                 });
                 thr_presence.detach();
 
-                std::thread thr_ping_loop1([&conn, &bot, &config]() {
+                std::thread thr_ping_loop1([&conn, &bot, &sql]() {
                     bot.log(dpp::ll_debug, "event_loop 'ping_loop1' started.");
                     while (true) {
                         if (!conn.ping()) {
                             bot.log(dpp::ll_error, "Ping to db failed, tryn to reconnect.");
 
-                            conn.connect(config.sql["db"], config.sql["host"],
-                                         config.sql["user"], config.sql["password"]);
+                            conn.connect(sql.db, sql.host, sql.user, sql.password);
                             sleep(30);
                             continue;
                         }
@@ -81,13 +84,9 @@ int main(int argc, char *argv[]) {
                 --argc;
 
                 // manuel command registration, IDK how to do it otherwise.
-                cog::regis_commands(bot);
+                createcmds(bot);
                 ticket::init_ticket_events(bot, conn, config);
-                ticket::init_ticket_commands(bot);
                 admin::init_admin_events(bot);
-                admin::init_admin_commands(bot);
-                cog::init_help_events(bot, conn, config);
-                cog::init_help_commands(bot);
             }
         }
 

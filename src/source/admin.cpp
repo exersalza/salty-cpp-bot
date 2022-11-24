@@ -5,31 +5,6 @@
 
 #include "../include/admin.hpp"
 
-void admin::init_admin_commands(dpp::cluster &bot) {
-    bot.log(dpp::ll_debug, "Initializing 'admin_commands'");
-
-    dpp::slashcommand admin("admin", "admin base command", bot.me.id);
-    admin.set_default_permissions(dpp::permissions(dpp::p_administrator));
-
-    admin.add_option(dpp::command_option(dpp::co_sub_command, "send",
-                                         "Let the bot send a message for you, useful for Rules and other kinds of stuff.")
-                                            .add_option(dpp::command_option(
-                                                    dpp::co_attachment, "file",
-                                                    "Please use text files that include the Message to send. (*.txt)",
-                                                    true)) // force the user to supply a file.
-                                            .add_option(dpp::command_option(
-                                                    dpp::co_string, "title",
-                                                    "Set a title."))
-                                            .add_option(dpp::command_option(
-                                                    dpp::co_boolean, "embed",
-                                                    "Is the message worth to be send as an Embed? Standard is false."))
-                                            .add_option(dpp::command_option(
-                                                    dpp::co_boolean, "server_image",
-                                                    "Will set the server image as thumbnail image.")));
-
-    bot.global_command_create(admin);
-}
-
 // later usage
 void admin::init_admin_events(dpp::cluster &bot) {
 

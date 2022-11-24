@@ -12,63 +12,6 @@
 #include "../include/ticketCogs.hpp"
 
 
-void ticket::init_ticket_commands(dpp::cluster &bot) {
-    bot.log(dpp::ll_debug, "Initializing 'ticket_commands'");
-
-    dpp::slashcommand ticket("ticket", "ticket base command", bot.me.id);
-
-    ticket.set_default_permissions(dpp::permissions(dpp::p_administrator));
-
-    ticket.add_option(
-            dpp::command_option(dpp::co_sub_command, "create", "Create Ticket message at current/given channel.").
-                    add_option(dpp::command_option(dpp::co_channel, "channel", "Define channel", false))
-    );
-
-    ticket.add_option(dpp::command_option(dpp::co_sub_command_group, "set", "Set Category, Notify, Max Ticket Count or Roles for new tickets.")
-                        .add_option(dpp::command_option(dpp::co_sub_command, "category", "set category for new tickets")
-                            .add_option(dpp::command_option(dpp::co_channel, "id", "Set the category id.", false)))
-                        .add_option(dpp::command_option(dpp::co_sub_command, "maxticketcount", "Set the max tickets that a user can open. You can enter 0 to deactivate the Limit.")
-                            .add_option(dpp::command_option(dpp::co_integer, "id", "Set the category id.", true)))
-                        .add_option(dpp::command_option(dpp::co_sub_command, "notify", "Set notify channel for new tickets") // set and delete
-                            .add_option(dpp::command_option(dpp::co_channel, "id", "Set the notify channel id.", false)))
-                        .add_option(dpp::command_option(dpp::co_sub_command, "roles", "Set Moderation roles for new tickets")
-                            .add_option(dpp::command_option(dpp::co_role, "id", "Set role id", true)) // set and delete
-                            .add_option(dpp::command_option(dpp::co_role, "id2", "Set role id", false))
-                            .add_option(dpp::command_option(dpp::co_role, "id3", "Set role id", false))
-                            .add_option(dpp::command_option(dpp::co_role, "id4", "Set role id", false))
-                            .add_option(dpp::command_option(dpp::co_role, "id5", "Set role id", false))));
-
-    ticket.add_option(dpp::command_option(dpp::co_sub_command_group, "remove", "Remove Category, Notify, or Roles for new tickets.")
-                        .add_option(dpp::command_option(dpp::co_sub_command, "category", "Remove category for new tickets"))
-                        .add_option(dpp::command_option(dpp::co_sub_command, "notify", "Remove notify channel for new tickets"))
-                        .add_option(dpp::command_option(dpp::co_sub_command, "roles", "Remove Moderation roles for new tickets")
-                            .add_option(dpp::command_option(dpp::co_role, "id", "Remove role id", true)) // set and delete
-                            .add_option(dpp::command_option(dpp::co_role, "id2", "Remove role id", false))
-                            .add_option(dpp::command_option(dpp::co_role, "id3", "Remove role id", false))
-                            .add_option(dpp::command_option(dpp::co_role, "id4", "Remove role id", false))
-                            .add_option(dpp::command_option(dpp::co_role, "id5", "Remove role id", false))));
-
-    ticket.add_option(
-            dpp::command_option(dpp::co_sub_command, "init", "Start configuration wizard.")
-    );
-
-    ticket.add_option(
-            dpp::command_option(dpp::co_sub_command, "config", "Open config embed")
-    );
-
-    ticket.add_option(
-            dpp::command_option(dpp::co_sub_command, "enable", "Enable the ticket system")
-    );
-
-    ticket.add_option(
-            dpp::command_option(dpp::co_sub_command, "disable", "Disable the ticket system")
-    );
-
-    bot.global_command_create(ticket);
-}
-
-
-
 dpp::message ticket::create_ticket_message(size_t &channel_id, dpp::embed &embed) {
     return dpp::message(channel_id, embed)
             .add_component(dpp::component().add_component(dpp::component()
@@ -96,10 +39,10 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
 
             mysqlpp::Query query = c.query();
             query << fmt::format("SELECT ticket.category_id, ticket.count, ticket.notify_channel, ticket.enabled, "
-                                 "ticket.max_ticket FROM ticket WHERE ticket.server_id = '{0}'; "
+                                 "ticket.max_ticket FROM salty_cpp_bot.ticket WHERE ticket.server_id = '{0}'; "
               "UPDATE salty_cpp_bot.ticket SET count=count + 1 WHERE ticket.server_id = '{0}';"
-              "select count(*) from cur_tickets where server_id = {0} and user_id = {1};"
-              "select ticket_access_roles.role_id from ticket_access_roles where ticket_access_roles.server_id = {0};",
+              "select count(*) from salty_cpp_bot.cur_tickets where server_id = {0} and user_id = {1};"
+              "select ticket_access_roles.role_id from salty_cpp_bot.ticket_access_roles where ticket_access_roles.server_id = {0};",
                     event_cmd.guild_id, event_cmd.usr.id);
 
             mysqlpp::StoreQueryResult res = query.store();

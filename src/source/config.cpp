@@ -7,20 +7,33 @@
 
 #include "../include/config.hpp"
 
-using json = nlohmann::json;
-
 
 cfg::Config::Config(std::string &path) : path(path) {
     std::fstream f(path);
-    json data = json::parse(f);
+    json _data = json::parse(f);
 
-    token = data["token"];
-    dev_token = data["dev_token"];
+    token = _data["token"];
+    dev_token = _data["dev_token"];
 
-    sql["db"] = data["db"].get_ref<const std::string&>().c_str();
-    sql["host"] = data["host"].get_ref<const std::string&>().c_str();
-    sql["user"] = data["user"].get_ref<const std::string&>().c_str();
-    sql["password"] = data["password"].get_ref<const std::string&>().c_str();
+    this->data = _data;
+}
+
+[[nodiscard]] cfg::sql cfg::Config::getSqlConf() {
+    cfg::sql sql {};
+
+    if (data["db"].empty()) {
+        std::fstream f(path);
+        json _data = json::parse(f);
+
+        this->data = _data;
+    }
+
+    sql.db = data["db"].get_ref<const std::string&>().c_str();
+    sql.host = data["host"].get_ref<const std::string&>().c_str();
+    sql.user = data["user"].get_ref<const std::string&>().c_str();
+    sql.password = data["password"].get_ref<const std::string&>().c_str();
+
+    return sql;
 }
 
 const std::string &cfg::Config::getToken() const {

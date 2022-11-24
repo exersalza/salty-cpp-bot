@@ -27,7 +27,11 @@ namespace u {
 
     std::string requests(const char* url);
     int stoc(const std::string &src, char* dest);
+
+
 } // u
+
+
 
 #endif // DCBOT_UTILS_HPP
 

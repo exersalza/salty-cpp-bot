@@ -7,7 +7,15 @@
 
 #include <string>
 
+using json = nlohmann::json;
+
 namespace cfg {
+    struct sql {
+        const char* user;
+        const char* password;
+        const char* db;
+        const char* host;
+    };
 
     class Config {
     public:
@@ -20,15 +28,17 @@ namespace cfg {
 
         // SQL - Set a to do tag here, when you insert real data. (I think only usable in Clion but not sure.)
 
-        std::map<std::string, const char*> sql;
+        [[nodiscard]] sql getSqlConf();
 
         int b_color = 0xbc3440;
     private:
         // Base bot config
+        json data;
         std::string token;
         std::string dev_token;
         std::string path;
     };
+
 
 } // Cfg
 
