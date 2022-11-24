@@ -15,20 +15,19 @@
 #include <vector>
 
 struct cmds;
+void createcmds(dpp::cluster&);
+
 struct cmds {
     std::string desc;
     uint64_t perm;
 	std::vector<dpp::command_option> p = {};
 };
 
-void createcmds(dpp::cluster& client);
-
-
 inline std::map<std::string, cmds> commands {
 	{
 		"ticket",
 			{
-				"Manage your Ticket system.",                 dpp::p_administrator,
+				"Manage your Ticket system.", dpp::p_administrator,
 				{
 					dpp::command_option(dpp::co_sub_command,
                                         "create",
@@ -69,7 +68,7 @@ inline std::map<std::string, cmds> commands {
 	},
     {
         "admin", {
-            "Admin base command",                             dpp::p_administrator,
+            "Admin base command", dpp::p_administrator,
             {
                 dpp::command_option(dpp::co_sub_command, "send",
                                          "Let the bot send a message for you, useful for Rules and other kinds of stuff.")
@@ -93,32 +92,37 @@ inline std::map<std::string, cmds> commands {
         "ping", {"Shows bot latency, but only when you want", dpp::p_send_messages}
     },
     {
-        "help", {"Shows the help page",                       dpp::p_send_messages}
+        "help", {"Shows the help page", dpp::p_send_messages}
     }
 };
 
-inline void createcmds(dpp::cluster& client) {
+inline void createcmds(dpp::cluster& bot) {
 	if (dpp::run_once<struct register_commands>()) {
 		std::vector<dpp::slashcommand> cmds;
 
 		for (auto& i : commands) {
 			dpp::slashcommand c;
+            bot.log(dpp::ll_info, fmt::format("Initializing {0}.", i.first));
+            try {// Create slash command template
+                c.set_name(i.first)
+                    .set_description(i.second.desc)
+                    .set_application_id(bot.me.id);
 
-			// Create slash command template
-			c.set_name(i.first)
-                .set_description(i.second.desc)
-                .set_application_id(client.me.id);
+                // error but don't know why, still works
+                c.options = i.second.p;
+                c.set_default_permissions(i.second.perm);
 
-            // error but don't know why, still works
-            c.options = i.second.p;
-            c.set_default_permissions(i.second.perm);
+                // Pushing all commands
+                cmds.push_back(c);
+                bot.log(dpp::ll_info, fmt::format("Initialized {0}.", i.first));
 
-			// Pushing all commands
-			cmds.push_back(c);
+            } catch (std::exception &e) {
+                bot.log(dpp::ll_info, fmt::format("Can't initialize {0} : {1}", i.first, e.what()));
+            }
 		}
 
 		// Create a global slash commands
-		client.global_bulk_command_create(cmds);
+		bot.global_bulk_command_create(cmds);
 	}
 }
 
