@@ -57,8 +57,6 @@
 namespace ticket {
     void init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::Config &config);
 
-    void init_ticket_commands(dpp::cluster &bot);
-
     void ticket_commands(dpp::cluster &bot,
                          const dpp::slashcommand_t &event,
                          const dpp::command_interaction &cmd_data,
