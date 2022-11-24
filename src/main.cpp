@@ -1,3 +1,6 @@
+// Copyright (c) 2022 exersalza
+// This project is licensed under the GNU 3 license. more information https://github.com/exersalza/salty-cpp-bot/blob/main/LICENSE
+
 //
 // Created by julian on 29.10.22.
 // When the javelin hit's there, the guys are literally grown up and got a job.
