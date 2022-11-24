@@ -4,8 +4,12 @@ project(dcbot VERSION 1.0 DESCRIPTION "First bot in cpp lulw")
 set(CMAKE_CXX_STANDARD 20)
 
 #[[add_subdirectory(flibs/DPP)]]
+aux_source_directory(src main)
+aux_source_directory(src/source source)
+aux_source_directory(src/include include)
 
-add_executable(dcbot src/main.cpp src/include/config.hpp src/source/config.cpp src/source/utils.cpp src/include/cogs.hpp src/include/economyCogs.hpp src/source/ticketCogs.cpp src/include/ticketCogs.hpp src/source/economyCogs.cpp src/source/cogs.cpp src/include/main.hpp src/source/eventLoops.cpp src/include/eventLoops.hpp src/source/help.cpp src/include/help.hpp src/source/games.cpp src/include/games.hpp src/source/admin.cpp src/include/admin.hpp src/source/twitchIntegration.cpp src/include/twitchIntegration.hpp src/include/initCommands.hpp)
+add_executable(${PROJECT_NAME} ${main} ${source} ${include})
+
 include_directories(${Dpp_INCLUDE_DIRS})
 include_directories(/usr/include/mysql/)
 include_directories(libs/)
@@ -16,6 +20,6 @@ find_package(fmt REQUIRED)
 
 target_link_libraries(${PROJECT_NAME} dpp fmt mysqlpp curl)
 target_include_directories(${PROJECT_NAME} PRIVATE
-        flibs/DDP/include
+        flibs/DPP/include
         flibs/libcurl-openssl-1.0
         flibs/mysql++/include)
