@@ -19,7 +19,7 @@ This Project is for a lazy Python dev to learn Cpp!
 [cmake 3.23](https://cmake.org/)<br>
 [make](https://www.gnu.org/software/make/)
 
-Otherwise, there is a `DOCKERFILE` ready to use.
+Otherwise, there is a `Dockerfile` ready to use.
 
 ### How to start the bot using a Dockerfile.
 1. Make sure you configured the `config.json` right.
