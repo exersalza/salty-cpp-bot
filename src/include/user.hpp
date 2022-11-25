@@ -10,12 +10,19 @@
 
 #include <mysql++/mysql++.h>
 #include <dpp/dpp.h>
+#include <fmt/format.h>
 
 #include "config.hpp"
+#include "ticketCogs.hpp"
 
 namespace user {
 
-    void init_user_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::Config &config);
+    void init_user_events(dpp::cluster &, mysqlpp::Connection &, cfg::Config &);
+    void user_commands(dpp::cluster &,
+                       const dpp::slashcommand_t &,
+                       const dpp::command_interaction &);
+
+    void user_role();
 
 } // user
 

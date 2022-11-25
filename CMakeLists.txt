@@ -8,7 +8,7 @@ aux_source_directory(src main)
 aux_source_directory(src/source source)
 aux_source_directory(src/include include)
 
-add_executable(${PROJECT_NAME} ${main} ${source} ${include} src/source/user.cpp src/include/user.hpp)
+add_executable(${PROJECT_NAME} ${main} ${source} ${include})
 
 include_directories(${Dpp_INCLUDE_DIRS})
 include_directories(/usr/include/mysql/)

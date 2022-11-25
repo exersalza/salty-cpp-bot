@@ -93,6 +93,16 @@ inline std::map<std::string, cmds> commands {
     },
     {
         "help", {"Shows the help page", dpp::p_send_messages}
+    },
+    {
+        "user", {
+            "Show user specific stuff, when you don't provide a id, then yours will be used.",
+                    dpp::p_send_messages,
+                    {
+                        dpp::command_option(dpp::co_sub_command, "avatar", "Get the avatar from someone and the link to it.")
+                            .add_option(dpp::command_option(dpp::co_user, "user", "Mention user, when not, it will take you."))
+                    }
+        }
     }
 };
 

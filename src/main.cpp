@@ -14,6 +14,7 @@
 #include <mysql++/mysql++.h>
 
 #include "include/help.hpp"
+#include "include/user.hpp"
 #include "include/admin.hpp"
 #include "include/utils.hpp"
 #include "include/config.hpp"
@@ -132,6 +133,10 @@ int main(int argc, char *argv[]) {
 
         if (interaction.get_command_name() == "help") {
             cog::help_commands(bot, event, cmd_data, config);
+        }
+
+        if (interaction.get_command_name() == "user") {
+            user::user_commands(bot, event, cmd_data);
         }
 
         if (interaction.get_command_name() == "ping") {
