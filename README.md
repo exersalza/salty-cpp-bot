@@ -27,7 +27,7 @@ Otherwise, there is a `Dockerfile` ready to use.
 3. start the container `docker run -d dcbot`
 
 ### Run the bot without the Dockerfile
-1. Make sure you have all deps installed or donwloaded and in `flibs/`
+1. Make sure you have all deps installed or downloaded and in `flibs/`
 2. Run `cmake .`
 3. Run `make`
 4. And then `./dcbot --init--commands`
