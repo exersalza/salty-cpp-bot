@@ -18,7 +18,9 @@ create table if not exists ticket
     category_id    bigint       default 0               null,
     count          int          default 0               null,
     notify_channel bigint       default 0               null,
-    ticket_title   varchar(255) default 'Ticket system' null
+    ticket_title   varchar(255) default 'Ticket system' null,
+    enabled        tinyint(1)   default 1               null,
+    max_ticket     int          default 0               null
 );
 
 create table if not exists ticket_access_roles
@@ -27,5 +29,22 @@ create table if not exists ticket_access_roles
         primary key,
     server_id bigint(50) null,
     role_id   bigint(50) null
+);
+
+create table if not exists user
+(
+    id      int auto_increment
+        primary key,
+    user_id bigint null,
+    coins   bigint null
+);
+
+create table if not exists user_inventory
+(
+    id         bigint auto_increment
+        primary key,
+    user_id    bigint null,
+    item_id    int    null,
+    item_count int    null
 );
 
