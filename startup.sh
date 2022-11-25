@@ -7,9 +7,14 @@ git clone https://github.com/brainboxdotcc/DPP /home/flibs/DPP
 
 # Copy mysql++ src files to te dest folder, reason is that you can't install yay or paru on docker.
 echo "Copying mysql++ stuff.."
-mkdir /home/flibs/mysql++ || cd /home/flibs/mysql++
-cp ./* /usr/lib/
-# Copy header files.
-cp include/* /usr/include/mysql++/
+
+if ! [ -d /home/flibs/mysql++ ]; then
+  mkdir /home/flibs/mysql++
+fi
+
+# Copy files
+cp /home/flibs/mysql++/* /usr/lib/
+cp /home/flibs/mysql++/include/* /usr/include/mysql++/
+
 
 echo "Setup finished..."
