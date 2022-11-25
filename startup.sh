@@ -12,6 +12,9 @@ if ! [ -d /home/flibs/mysql++ ]; then
   mkdir /home/flibs/mysql++
 fi
 
+if ! [ -d /usr/include/mysql++/ ]; then
+  mkdir /usr/include/mysql++/
+fi
 # Copy files
 cp /home/flibs/mysql++/* /usr/lib/
 cp /home/flibs/mysql++/include/* /usr/include/mysql++/
