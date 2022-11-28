@@ -71,6 +71,8 @@ namespace ticket {
 
     void change_state(const dpp::slashcommand_t &, mysqlpp::Connection &, const std::string &,
                       int, const cfg::sql &);
+
+    void connect(mysqlpp::Connection &c, const cfg::sql &sql);
 } // ticket
 
 

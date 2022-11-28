@@ -121,6 +121,8 @@ int main(int argc, char *argv[]) {
         dpp::interaction interaction = event.command;
         dpp::command_interaction cmd_data = interaction.get_command_interaction();
 
+
+        // todo: use map for commands.
         if (interaction.get_command_name() == "ticket") {
             ticket::ticket_commands(bot, event, cmd_data, conn, config, sql);
         }
