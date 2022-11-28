@@ -55,20 +55,22 @@
  * */
 
 namespace ticket {
-    void init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::Config &config);
+    void init_ticket_events(dpp::cluster &, mysqlpp::Connection &, cfg::Config &, cfg::sql &);
 
-    void ticket_commands(dpp::cluster &bot,
-                         const dpp::slashcommand_t &event,
-                         const dpp::command_interaction &cmd_data,
-                         mysqlpp::Connection &c,
-                         cfg::Config &conf);
+    void ticket_commands(dpp::cluster &,
+                         const dpp::slashcommand_t &,
+                         const dpp::command_interaction &,
+                         mysqlpp::Connection &,
+                         cfg::Config &,
+                         cfg::sql &);
 
     dpp::message create_ticket_message(size_t &channel_id, dpp::embed &embed);
 
     template<typename T>
     void confm_error(const dpp::cluster &bot, const T &event, const dpp::confirmation_callback_t &confm);
 
-    void change_state(const dpp::slashcommand_t &event, mysqlpp::Connection &c, const std::string& state, const int i_state);
+    void change_state(const dpp::slashcommand_t &, mysqlpp::Connection &, const std::string &,
+                      int, const cfg::sql &);
 } // ticket
 
 

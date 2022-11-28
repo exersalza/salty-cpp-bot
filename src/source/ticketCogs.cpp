@@ -24,10 +24,10 @@ dpp::message ticket::create_ticket_message(size_t &channel_id, dpp::embed &embed
                                                                   .set_id("ticket_create")));
 }
 
-void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::Config &config) {
+void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::Config &config, cfg::sql &sql) {
     bot.log(dpp::ll_debug, "Initializing 'ticket_events'");
 
-    bot.on_button_click([&bot, &c, &config](const dpp::button_click_t &event) {
+    bot.on_button_click([&bot, &c, &config, &sql](const dpp::button_click_t &event) {
         dpp::interaction event_cmd = event.command;
 
         if (event.custom_id == "ticket_create") {
@@ -40,6 +40,8 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
             int max_ticket_count;
             std::vector<size_t> mod_roles;
 
+            c.connect(sql.db, sql.host, sql.user, sql.password);
+
             mysqlpp::Query query = c.query();
             query << fmt::format("SELECT ticket.category_id, ticket.count, ticket.notify_channel, ticket.enabled, "
                                  "ticket.max_ticket FROM salty_cpp_bot.ticket WHERE ticket.server_id = '{0}'; "
@@ -48,41 +50,41 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
               "select ticket_access_roles.role_id from salty_cpp_bot.ticket_access_roles where ticket_access_roles.server_id = {0};",
                     event_cmd.guild_id, event_cmd.usr.id);
 
+            // Do the query stuff here, so I can drop the db connection afterwards.
             mysqlpp::StoreQueryResult res = query.store();
+            query.store_next();
+
+            auto res_cur_ticket = query.store_next();
+            mysqlpp::StoreQueryResult role_res = query.store_next();
+
+            u::kill_query(query);
+
+            c.disconnect();
+
+            // system dribble
+            if (res.empty() || !res[0]["enabled"]) {
+                event.edit_original_response(dpp::message("Ticket's are not enabled, contact an Moderator when you want to create a Ticket."));
+                return;
+            }
 
             category_id = res[0]["category_id"];
             ticket_count = res[0]["count"];
             notify_id = res[0]["notify_channel"];
             max_ticket_count = res[0]["max_ticket"];
 
-            short enabled = res[0]["enabled"];
 
-            if (!enabled) {
-                event.edit_original_response(dpp::message("Ticket's are not enabled, contact an Moderator when you want to create a Ticket."));
-                u::kill_query(query);
-                return;
-            }
-
-            query.store_next();
-
-            auto res_cur_ticket = query.store_next();
             int usr_cur_ticket = res_cur_ticket[0][0];
 
             if (max_ticket_count) {
                 if (max_ticket_count < usr_cur_ticket) {
                     event.edit_original_response(dpp::message("You have already to many tickets open, please close one first to open another one."));
-                    u::kill_query(query);
                     return;
                 }
             }
 
-            mysqlpp::StoreQueryResult role_res = query.store_next();
-
             for (size_t i = 0; i < role_res.num_rows(); ++i) {
                 mod_roles.push_back(role_res[i]["role_id"]);
             }
-
-            u::kill_query(query);
 
             dpp::embed em;
             dpp::channel channel;
@@ -106,11 +108,9 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
                                                  dpp::permissions::p_view_channel, 0);
             }
 
-
             bot.channel_create(channel, [&, event, notify_id](const dpp::confirmation_callback_t &confm) {
                 if (confm.is_error()) {
                     confm_error<dpp::button_click_t>(bot, event, confm);
-
                     return;
                 }
 
@@ -163,7 +163,9 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
                                                             .set_style(dpp::cos_success)));
                     try {
                         bot.message_create(mod_msg);
-                    } catch (std::exception e) {} // in case the bot cannot find the channel id, I will put something in there later.
+                    } catch (std::exception &e) {
+                        std::cout << e.what() << std::endl;
+                    } // in case the bot cannot find the channel id, I will put something in there later.
 
                 }
             });
@@ -174,7 +176,7 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
             bot.message_create(dpp::message(event_cmd.channel_id, "Ticket gets deleted in 1 sec."));
             try {
                 bot.channel_delete_sync(event_cmd.channel_id);
-            } catch (std::exception e) {}
+            } catch (std::exception &e) {}
             return;
         }
 
@@ -225,16 +227,20 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
 
             bot.channel_edit(channel.set_name(fmt::format("closed-{0}", channel.name)));
 
+            c.connect(sql.db, sql.host, sql.user, sql.password);
+
             mysqlpp::Query query = c.query();
             query << fmt::format("select user_id from cur_tickets where server_id = {0} and ticket_id = {1};",
                                  event_cmd.guild_id, event_cmd.channel_id);
 
             mysqlpp::StoreQueryResult res = query.store();
 
+            // here's a segfault, but I'm not sure if it fixed yet, comes from missing data in the database.
             long user_id = res[0]["user_id"];
             u::kill_query(query);
+            c.disconnect();
 
-            bot.channel_delete_permission(channel, user_id, [&](const dpp::confirmation_callback_t &confm) {
+            bot.channel_delete_permission(channel, user_id, [&message_id, &channel_id, &bot, &config, &event](const dpp::confirmation_callback_t &confm) {
                 if (confm.is_error()) {
                     ticket::confm_error(bot, event, confm);
                 }
@@ -272,6 +278,8 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
         if (event.custom_id == "ticket_reopen") {
             event.thinking();
             dpp::channel channel = event_cmd.get_channel();
+
+            c.connect(sql.db, sql.host, sql.user, sql.password);
             mysqlpp::Query query = c.query();
 
             query << fmt::format(
@@ -282,21 +290,24 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
             size_t user_id = res[0]["user_id"];
 
             u::kill_query(query);
+            c.disconnect();
 
             bot.message_delete(event_cmd.message_id, channel.id);
-            bot.channel_edit_permissions(channel.id, user_id, dpp::permissions::p_view_channel, 0, true);
 
-            // prevent rate limitation. works sometimes.
-            ::sleep(5);
+            // prevent rate limitation. works sometimes. but still needs some work.
+            sleep(5);
             try {
-                bot.channel_edit(channel.set_name(std::regex_replace(channel.name, std::regex("closed-"), "")));
+                bot.channel_edit(channel.set_name(std::regex_replace(channel.name, std::regex("closed-"), "")),
+                                 [](const dpp::confirmation_callback_t &confm) {});
+                bot.channel_edit_permissions(channel.id, user_id, dpp::permissions::p_view_channel, 0, true);
+
                 event.edit_original_response(fmt::format("<@{0}> your ticket got Re-Opened.", user_id));
-            } catch (std::exception e) {
+            } catch (std::exception &e) {
                 try {
                     event.edit_original_response(dpp::message("Can't reopen ticket, try again in a few minutes"));
 
                 // prevent edge case where the mod removes the channel before it can be re-opened
-                } catch (std::exception f) { return; }
+                } catch (std::exception &f) { return; }
             }
 
             return;
@@ -321,8 +332,10 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
 
     });
 
-    bot.on_channel_delete([&c](const dpp::channel_delete_t &event) {
+    bot.on_channel_delete([&c, &sql](const dpp::channel_delete_t &event) {
         // db cleaner, not sure yet if I want to let this in, but it's there.
+        c.connect(sql.db, sql.host, sql.user, sql.password);
+
         mysqlpp::Query query = c.query();
 
         query << fmt::format("if exists(select * from salty_cpp_bot.cur_tickets where ticket_id = {0} and server_id = {1}) then "
@@ -331,6 +344,7 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
                              event.deleted->id, event.deleted->guild_id);
 
         query.execute();
+        c.disconnect();
     });
 }
 
@@ -352,7 +366,8 @@ void ticket::ticket_commands(dpp::cluster &bot,
                              const dpp::slashcommand_t &event,
                              const dpp::command_interaction &cmd_data,
                              mysqlpp::Connection &c,
-                             cfg::Config &conf) {
+                             cfg::Config &conf,
+                             cfg::sql &sql) {
 
     auto sc = cmd_data.options[0];
 
@@ -361,6 +376,7 @@ void ticket::ticket_commands(dpp::cluster &bot,
 
     // ik you could use a switch here, but I'm not a fan of indentation so no switch here.
     if (sc.name == "create") {
+        c.connect(sql.db, sql.host, sql.user, sql.password);
         mysqlpp::Query query = c.query();
         std::string title;
 
@@ -378,10 +394,11 @@ void ticket::ticket_commands(dpp::cluster &bot,
                              event.command.guild_id);
 
         mysqlpp::StoreQueryResult res = query.store();
+        u::kill_query(query);
+        c.disconnect();
 
         title = (std::string) res[0]["ticket_title"];
 
-        u::kill_query(query);
 
         em.set_color(0xbc3440)
           .set_title(title)
@@ -399,7 +416,7 @@ void ticket::ticket_commands(dpp::cluster &bot,
             }
             event.reply(dpp::message("Ticket message got created.").set_flags(dpp::m_ephemeral));
 
-        } catch (std::exception e) {
+        } catch (std::exception &e) {
             bot.log(dpp::ll_error, fmt::format("Oh no, not good {}", e.what()));
 
             event.reply("Something went wrong, try again later.");
@@ -423,7 +440,7 @@ void ticket::ticket_commands(dpp::cluster &bot,
             if (!sub.options.empty())
                 category_id = sub.get_value<dpp::snowflake>(0);
 
-            bot.channels_get(event.command.guild_id, [&bot, &c, event, category_id](const dpp::confirmation_callback_t &confm) {
+            bot.channels_get(event.command.guild_id, [&bot, &c, event, category_id, &sql](const dpp::confirmation_callback_t &confm) {
                 if (confm.is_error()) {
                     ticket::confm_error(bot, event, confm);
                     return;
@@ -435,6 +452,7 @@ void ticket::ticket_commands(dpp::cluster &bot,
                     return;
                 }
 
+                c.connect(sql.db, sql.host, sql.user, sql.password);
                 mysqlpp::Query query = c.query();
 
                 query << fmt::format("if exists(select * from salty_cpp_bot.ticket where server_id = {0}) then"
@@ -445,6 +463,7 @@ void ticket::ticket_commands(dpp::cluster &bot,
                                      event.command.guild_id, category_id);
 
                 query.execute();
+                c.disconnect();
 
                 event.edit_original_response(fmt::format("<#{0}> was set as new Category.", category_id));
             });
@@ -456,7 +475,9 @@ void ticket::ticket_commands(dpp::cluster &bot,
             std::string output = "Roles: ";
 
             if (!sub.options.empty()) {
+                c.connect(sql.db, sql.host, sql.user, sql.password);
                 mysqlpp::Query query = c.query();
+
                 for (auto& i : sub.options) {
                     size_t value = sub.get_value<dpp::snowflake>(count);
 
@@ -468,7 +489,9 @@ void ticket::ticket_commands(dpp::cluster &bot,
                     output += fmt::format("<@&{0}> ", value);
                     ++count;
                 }
+
                 query.execute();
+                c.disconnect();
             }
 
             output += "added for Moderation/Support.";
@@ -481,7 +504,7 @@ void ticket::ticket_commands(dpp::cluster &bot,
             if (!sub.options.empty())
                 channel_id = sub.get_value<dpp::snowflake>(0);
 
-            bot.channels_get(event.command.guild_id, [&bot, &c, event, channel_id](const dpp::confirmation_callback_t &confm) {
+            bot.channels_get(event.command.guild_id, [&bot, &c, event, channel_id, &sql](const dpp::confirmation_callback_t &confm) {
                 if (confm.is_error()) {
                     ticket::confm_error(bot, event, confm);
                     return;
@@ -493,6 +516,7 @@ void ticket::ticket_commands(dpp::cluster &bot,
                     return;
                 }
 
+                c.connect(sql.db, sql.host, sql.user, sql.password);
                 mysqlpp::Query query = c.query();
 
                 query << fmt::format("if exists(select * from salty_cpp_bot.ticket where server_id = {0}) then"
@@ -503,12 +527,15 @@ void ticket::ticket_commands(dpp::cluster &bot,
                                      event.command.guild_id, channel_id);
 
                 query.execute();
+                c.disconnect();
                 event.edit_original_response(fmt::format("<#{0}> was set as new Notify channel.", channel_id));
             });
         }
 
         if (sub.name.find("maxticketcount") != std::string::npos) {
             long count = 0;
+
+            //TODO: Change output on input of 0
 
             if (!sub.options.empty())
                 count = sub.get_value<long>(0);
@@ -519,6 +546,7 @@ void ticket::ticket_commands(dpp::cluster &bot,
                 return;
             }
 
+            c.connect(sql.db, sql.host, sql.user, sql.password);
             mysqlpp::Query query = c.query();
             query << fmt::format("if exists(select count(*) from ticket where server_id = {0}) then"
                                  " update ticket set max_ticket = {1} where server_id = {0}; "
@@ -527,6 +555,7 @@ void ticket::ticket_commands(dpp::cluster &bot,
                                  "end if;", event.command.guild_id, count);
 
             query.execute();
+            c.disconnect();
 
             event.edit_original_response(dpp::message(event.command.channel_id,
                                                       fmt::format("{0} was setted a new max count. To deactivate the limit use 0 as count.", count)));
@@ -546,10 +575,12 @@ void ticket::ticket_commands(dpp::cluster &bot,
 
             table_name = (sub.name == "category") ? "category_id" : "notify_channel";
 
+            c.connect(sql.db, sql.host, sql.user, sql.password);
             mysqlpp::Query query = c.query();
             query << fmt::format("update salty_cpp_bot.ticket set {0} = 0 where server_id = {1}", table_name, event.command.guild_id);
 
             query.execute();
+            c.disconnect();
 
             event.edit_original_response(fmt::format("{0} id removed from database.", sub.name));
         }
@@ -560,6 +591,7 @@ void ticket::ticket_commands(dpp::cluster &bot,
             output += "Removed: ";
 
             if (!sub.options.empty()){
+                c.connect(sql.db, sql.host, sql.user, sql.password);
                 mysqlpp::Query query = c.query();
 
                 for (auto& i : sub.options) {
@@ -572,6 +604,7 @@ void ticket::ticket_commands(dpp::cluster &bot,
                     output += fmt::format("<@&{0}> ", value);
                     ++count;
                 }
+                c.disconnect();
                 query.execute();
 
                 output += "from the database.";
@@ -588,33 +621,44 @@ void ticket::ticket_commands(dpp::cluster &bot,
           .set_footer("Kenexar.eu", bot.me.get_avatar_url())
           .set_timestamp(time(nullptr));
 
+        c.connect(sql.db, sql.host, sql.user, sql.password);
         mysqlpp::Query query = c.query();
         query << fmt::format("if not exists(select * from ticket where server_id={0}) then"
                              " insert into ticket (server_id, enabled) values ({0}, 0); "
                              "end if;"
                              "select ticket.enabled, ticket.category_id, ticket.ticket_title, "
-                             "ticket.notify_channel, ticket.count from salty_cpp_bot.ticket where server_id = {0};"
+                             "ticket.notify_channel, ticket.count, ticket.max_ticket"
+                             " from salty_cpp_bot.ticket where server_id = {0};"
                              "select ticket_access_roles.role_id from ticket_access_roles where server_id = {0};",
                              event.command.guild_id);
 
         query.store();
-        mysqlpp::StoreQueryResult res = query.store_next();
+        auto res = query.store_next();
+        auto res2 = query.store_next();
+        c.disconnect();
 
         bool enabled = res[0]["enabled"];
         int ticket_count = res[0]["count"];
         auto ticket_title = (std::string) res[0]["ticket_title"];
         size_t category_id = res[0]["category_id"];
         size_t notify_channel = res[0]["notify_channel"];
+        int max_ticket = res[0]["max_ticket"];
         std::stringstream roles;
+        std::stringstream max_ticket_out;
 
-
-        auto res2 = query.store_next();
         for (size_t i = 0; i < res2.num_rows(); ++i) {
             size_t role = res2[i]["role_id"];
             roles << fmt::format("<@&{0}>", role) << '\n';
         }
 
+        if (!max_ticket)
+            max_ticket_out << "Disabled";
+        else
+            max_ticket_out << max_ticket;
+
+
         em.add_field("Enabled", enabled ? "True" : "False", true);
+        em.add_field("Max Ticket for users", fmt::format("{0}", max_ticket_out.str()), true);
         em.add_field("Category for new ticket.", fmt::format("<#{0}>", category_id), true);
         em.add_field("Notify channel for new tickets.", fmt::format("<#{0}>", notify_channel), true);
         em.add_field("Created tickets on this server",  fmt::format("{0}", ticket_count), true);
@@ -624,11 +668,11 @@ void ticket::ticket_commands(dpp::cluster &bot,
     }
 
     if (sc.name == "enable") {
-        change_state(event, c, "enabled", 1);
+        change_state(event, c, "enabled", 1, sql);
     }
 
     if (sc.name == "disable") {
-        change_state(event, c, "disabled", 0);
+        change_state(event, c, "disabled", 0, sql);
     }
 
 }
@@ -636,13 +680,16 @@ void ticket::ticket_commands(dpp::cluster &bot,
 void ticket::change_state(const dpp::slashcommand_t &event,
                           mysqlpp::Connection &c,
                           const std::string &state,
-                          const int i_state) {
+                          int i_state,
+                          const cfg::sql &sql) {
+    c.connect(sql.db, sql.host, sql.user, sql.password);
     mysqlpp::Query query = c.query();
 
     query << fmt::format("update salty_cpp_bot.ticket set enabled={1} where server_id = {0};",
                          event.command.guild_id, i_state);
 
     query.execute();
+    c.disconnect();
 
     event.reply(dpp::message(fmt::format("Ticket system got {0}.", state)).set_flags(dpp::m_ephemeral));
 }

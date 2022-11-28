@@ -16,6 +16,7 @@
 #include "include/help.hpp"
 #include "include/user.hpp"
 #include "include/admin.hpp"
+#include "include/tests.hpp"
 #include "include/utils.hpp"
 #include "include/config.hpp"
 #include "include/ticketCogs.hpp"
@@ -35,15 +36,10 @@ int main(int argc, char *argv[]) {
 
     conn.connect(sql.db, sql.host, sql.user, sql.password);
 
-
     if (!conn.connected()) {
         std::cout << "Couldn't connect to db..." << std::endl;
         return -1;
     }
-
-    mysqlpp::Query query = conn.query();
-    query << "select count(*) from ticket";
-    auto res = query.store();
 
     dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
 
@@ -56,13 +52,13 @@ int main(int argc, char *argv[]) {
             if (argc == 2 and strcmp(argv[1], "--init-commands") != 0) {
                 std::thread thr_presence([&bot]() {
                     bot.log(dpp::ll_info, "Presence warmup");
-                    ::sleep(90);
+                    sleep(90);
                     bot.log(dpp::ll_info, "Presence gonna start now.");
 
                     while (true) {
                         try {
                             bot.set_presence(dpp::presence(dpp::ps_online, dpp::activity_type::at_watching, "the development of me."));
-                            ::sleep(120);
+                            sleep(120);
                         } catch (std::exception &e) {
                             bot.log(dpp::ll_error, fmt::format("FUCK, somethin went wron {0}", e.what()));
                         }
@@ -73,13 +69,15 @@ int main(int argc, char *argv[]) {
                 std::thread thr_ping_loop1([&conn, &bot, &sql]() {
                     bot.log(dpp::ll_debug, "event_loop 'ping_loop1' started.");
                     while (true) {
+                        conn.connect(sql.db, sql.host, sql.user, sql.password);
                         if (!conn.ping()) {
-                            bot.log(dpp::ll_error, "Ping to db failed, tryn to reconnect.");
+                            bot.log(dpp::ll_error, "Ping to db failed, tryn again in 30 seconds.");
 
                             conn.connect(sql.db, sql.host, sql.user, sql.password);
                             sleep(30);
                             continue;
                         }
+                        conn.disconnect();
                         sleep(60 * 60 * 1);
                     }
                 });
@@ -87,9 +85,10 @@ int main(int argc, char *argv[]) {
                 thr_ping_loop1.detach();
                 --argc;
 
-                // manuel command registration, IDK how to do it otherwise.
+                // IT'S NOT MANUEL ANYMORE
                 createcmds(bot);
-                ticket::init_ticket_events(bot, conn, config);
+
+                ticket::init_ticket_events(bot, conn, config, sql);
                 admin::init_admin_events(bot);
             }
         }
@@ -113,18 +112,17 @@ int main(int argc, char *argv[]) {
         std::string msg_content = event.msg.content;
         std::vector<std::string> splitet_msg_cont = u::split(msg_content);
 
-        if (u::stolower(splitet_msg_cont[0]) == "hello"
-            && u::stolower(splitet_msg_cont[1]) == "world!")
+        if (u::stolower(splitet_msg_cont[0]) == "hello" && u::stolower(splitet_msg_cont[1]) == "world!")
             event.reply("World Hello!");
 
     });
 
-    bot.on_slashcommand([&bot, &conn, &config](const dpp::slashcommand_t &event) {
+    bot.on_slashcommand([&bot, &conn, &config, &sql](const dpp::slashcommand_t &event) {
         dpp::interaction interaction = event.command;
         dpp::command_interaction cmd_data = interaction.get_command_interaction();
 
         if (interaction.get_command_name() == "ticket") {
-            ticket::ticket_commands(bot, event, cmd_data, conn, config);
+            ticket::ticket_commands(bot, event, cmd_data, conn, config, sql);
         }
 
         if (interaction.get_command_name() == "admin") {
@@ -151,14 +149,12 @@ int main(int argc, char *argv[]) {
 
     while (true) {
         try {
+            bot.log(dpp::ll_debug, "starting...");
             bot.start(false);
-            bot.log(dpp::ll_debug, "started");
-
-        } catch (std::exception e) {
+        } catch (std::exception &e) {
             bot.log(dpp::ll_error, fmt::format("Oh shit, not good {}", e.what()));
         }
-
-        ::sleep(30);
+        sleep(30);
     }
     return 0;
 }
