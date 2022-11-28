@@ -32,9 +32,8 @@ int main(int argc, char *argv[]) {
 
     // SQL Shit
     mysqlpp::Connection conn;
-    conn.set_option(new mysqlpp::MultiStatementsOption(true));
 
-    conn.connect(sql.db, sql.host, sql.user, sql.password);
+    ticket::connect(conn, sql);
 
     if (!conn.connected()) {
         std::cout << "Couldn't connect to db..." << std::endl;
@@ -49,7 +48,7 @@ int main(int argc, char *argv[]) {
 
     bot.on_ready([&bot, &argc, &argv, &conn, &sql, &config](const dpp::ready_t &event) {
         if (dpp::run_once<struct register_bot_commands>()) {
-            if (argc == 2 and strcmp(argv[1], "--init-commands") != 0) {
+            if (argc == 2 && !strcmp(argv[1], "--init")) {
                 std::thread thr_presence([&bot]() {
                     bot.log(dpp::ll_info, "Presence warmup");
                     sleep(90);

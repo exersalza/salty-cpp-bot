@@ -34,6 +34,7 @@ namespace cfg {
         [[nodiscard]] sql getSqlConf();
 
         int b_color = 0xbc3440;
+        std::string log_webhook;
     private:
         // Base bot config
         json data;
