@@ -27,6 +27,7 @@ Otherwise, there is a `Dockerfile` ready to use.
 3. start the container `docker run -d dcbot`
 
 ### Run the bot without the Dockerfile
+Info: The bot is build on linux, when you're on Windows, please check how to Compile the libs on your system.
 1. Make sure you have all deps installed or downloaded and in `flibs/`
 2. Run `cmake .`
 3. Run `make`
