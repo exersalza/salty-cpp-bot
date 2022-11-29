@@ -5,8 +5,6 @@
 // Created by julian on 29.10.22.
 // I'm driving in a cadillac, cadillac, I won't give it back, give it back.
 
-#pragma once
-
 #include <string>
 #include <unistd.h>
 #include <fmt/format.h>

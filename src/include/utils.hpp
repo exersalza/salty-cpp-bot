@@ -8,8 +8,6 @@
 #ifndef DCBOT_UTILS_HPP
 #define DCBOT_UTILS_HPP
 
-#pragma once
-
 
 #include <vector>
 #include <iostream>
