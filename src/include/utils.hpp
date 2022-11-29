@@ -4,10 +4,15 @@
 //
 // Created by julian on 1.11.22.
 //
+
 #ifndef DCBOT_UTILS_HPP
 #define DCBOT_UTILS_HPP
 
+#pragma once
+
+
 #include <vector>
+#include <iostream>
 #include <string>
 #include <dpp/dpp.h>
 #include <curl/curl.h>
@@ -30,7 +35,6 @@ namespace u {
 
     std::string requests(const char* url);
     int stoc(const std::string &src, char* dest);
-
 
 } // u
 

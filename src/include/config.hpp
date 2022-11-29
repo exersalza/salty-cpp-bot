@@ -24,7 +24,7 @@ namespace cfg {
     public:
         Config() = default;
 
-        explicit Config(std::string &path);
+        explicit Config(std::string &&path);
 
         [[nodiscard]] const std::string &getToken() const;
         [[nodiscard]] const std::string &getToken(const std::string& token_type) const;

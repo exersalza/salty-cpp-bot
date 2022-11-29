@@ -6,17 +6,24 @@
 //
 
 #include <fstream>
+#include <iostream>
 #include <dpp/nlohmann/json.hpp>
 
 #include "../include/config.hpp"
 
 
-cfg::Config::Config(std::string &path) : path(path) {
+cfg::Config::Config(std::string &&path) : path(path) {
     std::fstream f(path);
     json _data = json::parse(f);
 
     token = _data["token"];
     dev_token = _data["dev_token"];
+    log_webhook = _data["webhook"];
+
+    if (log_webhook.empty()) {
+        std::cout << "WEBHOOK ID NOT SET, OMITTING WEBHOOK LOGING." << std::endl;
+    }
+
 
     this->data = _data;
 }

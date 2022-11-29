@@ -5,8 +5,8 @@
 // Created by julian on 29.10.22.
 // When the javelin hit's there, the guys are literally grown up and got a job.
 
-
 #include <regex>
+#include <ctime>
 #include <iostream>
 #include <unistd.h>
 #include <dpp/dpp.h>
@@ -24,11 +24,19 @@
 
 
 int main(int argc, char *argv[]) {
+
     // Normal config shit
-    std::string path = "config.json";
-    cfg::Config config = cfg::Config(path);
+    cfg::Config config = cfg::Config("config.json");
     cfg::sql sql = config.getSqlConf();
     const std::string &token = config.getToken();
+    std::map<int, std::string> ll_map {
+            {0, "trace"},
+            {1, "debug"},
+            {2, "info"},
+            {3, "warning"},
+            {4, "error"},
+            {5, "critical"}
+    };
 
     // SQL Shit
     mysqlpp::Connection conn;
@@ -44,7 +52,25 @@ int main(int argc, char *argv[]) {
 
     dpp::cache<dpp::message> bot_message_cache;
 
-    bot.on_log(dpp::utility::cout_logger());
+    bot.on_log([&bot, &config, &ll_map](const dpp::log_t &lt) {
+        std::time_t ct = std::time(nullptr);
+
+        std::string t = std::ctime(&ct);
+        t.erase(t.end() - 1);
+
+        std::string output_str = fmt::format("[{0}][{1}]: {2}", t, ll_map[lt.severity], lt.message);
+        std::cout << output_str << '\n';
+
+        if (!config.log_webhook.empty()) {
+            if (lt.message.find("Initial") != std::string::npos) {
+                return;
+            }
+
+            dpp::webhook wh(config.log_webhook);
+            bot.execute_webhook(wh, dpp::message(output_str));
+        }
+
+    });
 
     bot.on_ready([&bot, &argc, &argv, &conn, &sql, &config](const dpp::ready_t &event) {
         if (dpp::run_once<struct register_bot_commands>()) {
