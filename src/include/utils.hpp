@@ -23,8 +23,8 @@ namespace u {
     [[maybe_unused]] std::vector<std::string> split(std::string &s, const std::string &del);
 
     [[maybe_unused]] bool file_exists(const std::string &name);
-    [[maybe_unused]] std::string stolower(const std::string &name);
-    [[maybe_unused]] std::string stoupper(const std::string &name);
+    [[maybe_unused]] std::string stol(const std::string &name);
+    [[maybe_unused]] std::string stou(const std::string &name);
 
     int kill_query(mysqlpp::Query &query);
 

@@ -24,6 +24,10 @@ cfg::Config::Config(std::string &&path) : path(path) {
         std::cout << "WEBHOOK ID NOT SET, OMITTING WEBHOOK LOGING." << std::endl;
     }
 
+    if (!dev_token.empty()) {
+        std::cout << "\u001b[31m---- USING DEV TOKEN ----\u001b[0m" << std::endl;
+    }
+
 
     this->data = _data;
 }

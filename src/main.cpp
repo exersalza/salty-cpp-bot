@@ -137,7 +137,7 @@ int main(int argc, char *argv[]) {
         std::string msg_content = event.msg.content;
         std::vector<std::string> splitet_msg_cont = u::split(msg_content);
 
-        if (u::stolower(splitet_msg_cont[0]) == "hello" && u::stolower(splitet_msg_cont[1]) == "world!")
+        if (u::stol(splitet_msg_cont[0]) == "hello" && u::stol(splitet_msg_cont[1]) == "world!")
             event.reply("World Hello!");
 
     });

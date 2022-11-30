@@ -16,6 +16,7 @@
 
 struct cmds;
 void createcmds(dpp::cluster&);
+dpp::command_option m_user(dpp::co_user, "user", "Mention user, when not, it will take you.");
 
 struct cmds {
     std::string desc;
@@ -100,7 +101,13 @@ inline std::map<std::string, cmds> commands {
                     dpp::p_send_messages,
                     {
                         dpp::command_option(dpp::co_sub_command, "avatar", "Get the avatar from someone and the link to it.")
-                            .add_option(dpp::command_option(dpp::co_user, "user", "Mention user, when not, it will take you."))
+                            .add_option(m_user),
+
+                        dpp::command_option(dpp::co_sub_command, "banner", "Get the banner from someone and the link to it.")
+                            .add_option(m_user),
+
+                        dpp::command_option(dpp::co_sub_command, "info", "Get full information about a user.")
+                            .add_option(m_user),
                     }
         }
     }

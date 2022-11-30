@@ -11,7 +11,7 @@
 
 #include "../include/utils.hpp"
 
-[[maybe_unused]] std::string u::stolower(const std::string &name) {
+[[maybe_unused]] std::string u::stol(const std::string &name) {
     std::stringstream ret;
     for (auto c : name) {
         if (c != ' ')
@@ -23,7 +23,7 @@
     return ret.str();
 }
 
-[[maybe_unused]] std::string u::stoupper(const std::string &name) {
+[[maybe_unused]] std::string u::stou(const std::string &name) {
     std::stringstream ret;
     for (auto c : name) {
         if (c != ' ')
