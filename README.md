@@ -36,5 +36,10 @@ Info: The bot is build on linux, when you're on Windows, please check how to Com
 
 Note: Make sure that you have all config parameters set, specially the sql ones. 
 
+## Contribution
+Feel free to open a Issue or Pull request, anything that helps make the Bot better, is appreciated.
+
+The Bot should run on a Local machine before getting merged!
+
 ## Get in Touch
 Join our Discord Server: https://discord.gg/W3Yf53dBMH
