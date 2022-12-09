@@ -7,6 +7,7 @@ This Project is for a lazy Python dev to learn Cpp!
 ![Lines of code](https://img.shields.io/tokei/lines/github/exersalza/salty-cpp-bot?&style=plastic&label=Lines%20of%20Code)
 ![cpp version](https://img.shields.io/badge/c%2B%2B%20version-20-blue?style=plastic)
 [![wakatime](https://wakatime.com/badge/user/e979c403-8c51-4e2a-8fac-8dea013f7b3b/project/6d091084-aac7-41ff-9c55-1f8df5a62b33.svg?style=plastic)](https://wakatime.com/badge/user/e979c403-8c51-4e2a-8fac-8dea013f7b3b/project/6d091084-aac7-41ff-9c55-1f8df5a62b33)
+[![Docker Image CI](https://github.com/exersalza/salty-cpp-bot/actions/workflows/docker-image.yml/badge.svg)](https://github.com/exersalza/salty-cpp-bot/actions/workflows/docker-image.yml)
 
 ### Deps:
 [DPP](https://github.com/brainboxdotcc/DPP)<br>
