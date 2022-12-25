@@ -10,6 +10,7 @@
 
 #include <dpp/dpp.h>
 #include <fmt/format.h>
+#include <mysql++/mysql++.h>
 
 #include "config.hpp"
 #include "utils.hpp"
@@ -21,6 +22,13 @@ namespace admin {
                         const dpp::slashcommand_t &event,
                         const dpp::command_interaction &cmd_data,
                         const cfg::Config &conf);
+
+    void verify_commands(dpp::cluster &bot,
+                        const dpp::slashcommand_t &event,
+                        const dpp::command_interaction &cmd_data,
+                        const cfg::Config &conf,
+                        mysqlpp::Connection &c,
+                        const cfg::sql &sql);
 
 };
 

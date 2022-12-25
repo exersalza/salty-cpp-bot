@@ -7,10 +7,22 @@
 
 
 #include "../include/admin.hpp"
+#include "../include/ticketCogs.hpp"
 
 // later usage
 void admin::init_admin_events(dpp::cluster &bot) {
+    bot.log(dpp::ll_debug, "Initializing 'admin_events'");
 
+    bot.on_button_click([](const dpp::button_click_t &event) {
+        auto event_cmd = event.command;
+
+        if (event.custom_id == "verify") {
+            event.thinking(true);
+
+            auto user = event_cmd.usr;
+
+        }
+    });
 }
 
 void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
@@ -81,5 +93,61 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
         }
 
         event.reply(dpp::message(event.command.channel_id, "Message created.").set_flags(dpp::m_ephemeral));
+    }
+
+}
+
+void admin::verify_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
+                           const dpp::command_interaction &cmd_data, const cfg::Config &conf,
+                           mysqlpp::Connection &c, const cfg::sql &sql) {
+
+    auto sc = cmd_data.options[0];
+
+    if (sc.name == "role") {
+        event.thinking(true);
+        auto sub = sc.options[0];
+        size_t role = sub.get_value<dpp::snowflake>(0); // 763183221209956362
+        std::cout << "somehting\n";
+
+        try {
+            ticket::connect(c, sql);
+
+            mysqlpp::Query query = c.query();
+            query << fmt::format("if not exists(select server_id from salty_cpp_bot.verify where server_id='{0}') then"
+                     "  insert into salty_cpp_bot.verify (server_id, role_id) values ({0}, {1});"
+                     "else"
+                     "  update salty_cpp_bot.verify set role_id = {1} where server_id = {0};"
+                     "end if;", event.command.guild_id, role);
+
+            // Do the query stuff here, so I can drop the db connection afterwards. copy & paste monkey here
+            query.execute();
+            u::kill_query(query);
+            c.disconnect();
+
+            event.edit_response(fmt::format("<@&{0}> was set a Verified role.", role));
+        } catch (std::exception &e) {
+            bot.log(dpp::ll_error, fmt::format("Can't create Verify Role, idk why {0}", e.what()));
+            event.edit_response("Can't do that right now, please try again later.");
+        }
+
+
+
+    }
+
+    if (sc.name == "send") {
+        dpp::embed em;
+
+        em.set_title("Verify")
+            .set_description("Please verify yourself with a press on the button below.")
+            .set_color(conf.b_color)
+            .set_footer("Kenexar.eu - Verify", bot.me.get_avatar_url());
+
+        event.reply(dpp::message("Verify message created.").set_flags(dpp::m_ephemeral));
+        bot.message_create(dpp::message(event.command.channel_id, em).add_component(
+                    dpp::component().add_component(dpp::component()
+                                                    .set_type(dpp::cot_button)
+                                                    .set_id("verify")
+                                                    .set_label("Verify")
+                                                    .set_style(dpp::cos_primary))));
     }
 }

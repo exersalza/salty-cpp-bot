@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     // Normal config shit
     cfg::Config config = cfg::Config("config.json");
     cfg::sql sql = config.getSqlConf();
-    const std::string &token = config.getToken();
+    const std::string &token = config.getToken("dev");
     std::map<int, std::string> ll_map {
             {0, "trace"},
             {1, "debug"},
@@ -150,6 +150,10 @@ int main(int argc, char *argv[]) {
         // todo: use map for commands.
         if (interaction.get_command_name() == "ticket") {
             ticket::ticket_commands(bot, event, cmd_data, conn, config, sql);
+        }
+
+        if (interaction.get_command_name() == "verify") {
+            admin::verify_commands(bot, event, cmd_data, config, conn, sql);
         }
 
         if (interaction.get_command_name() == "admin") {

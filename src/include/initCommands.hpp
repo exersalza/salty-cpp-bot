@@ -110,6 +110,19 @@ inline std::map<std::string, cmds> commands {
                             .add_option(m_user),
                     }
         }
+    },
+    {
+        "verify", {
+            "Setup the verify system",
+                    dpp::p_administrator,
+                    {
+                        dpp::command_option(dpp::co_sub_command, "send", "Send the Verify message")
+                            .add_option(dpp::command_option(dpp::co_channel, "channel", "Give a channel for the message")),
+
+                        dpp::command_option(dpp::co_sub_command, "role", "Set the New Member role for the Verify system")
+                            .add_option(dpp::command_option(dpp::co_role, "role", "Set the Role.", true))
+                    }
+        }
     }
 };
 
@@ -120,7 +133,7 @@ inline void createcmds(dpp::cluster& bot) {
 		for (auto& i : commands) {
 			dpp::slashcommand c;
             bot.log(dpp::ll_info, fmt::format("Initializing {0}.", i.first));
-            try {// Create slash command template
+            try {  // Create slash command template
                 c.set_name(i.first)
                     .set_description(i.second.desc)
                     .set_application_id(bot.me.id);

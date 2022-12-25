@@ -3,7 +3,7 @@ project(dcbot VERSION 1.0 DESCRIPTION "First bot in cpp lulw")
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_subdirectory(flibs/DPP)
+# add_subdirectory(flibs/DPP)
 aux_source_directory(src main)
 aux_source_directory(src/source source)
 aux_source_directory(src/include include)
