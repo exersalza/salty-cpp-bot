@@ -25,20 +25,19 @@ Otherwise, there is a `Dockerfile` ready to use.
 
 ### How to start the bot using a Dockerfile.
 1. Make sure you configured the `config.json` right.
-2. run `docker build -t dcbot .`
-3. start the container `docker run -d dcbot`
+2. run `./createAndRun.sh`. This will create the Container and start it.
 
 ### Run the bot without the Dockerfile
 Info: The bot is build on linux, when you're on Windows, please check how to Compile the libs on your system.
 1. Make sure you have all deps installed or downloaded and in `flibs/`
 2. Run `cmake .`
 3. Run `make`
-4. And then `./dcbot --init--commands`
+4. And then `./dcbot --init`
 
 Note: Make sure that you have all config parameters set, specially the sql ones. 
 
 ## Contribution
-Feel free to open a Issue or Pull request, anything that helps make the Bot better, is appreciated.
+Feel free to open an Issue or Pull request, anything that helps make the Bot better, is appreciated.
 
 The Bot should run on a Local machine before getting merged!
 
