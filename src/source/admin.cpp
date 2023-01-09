@@ -107,7 +107,6 @@ void admin::verify_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
         event.thinking(true);
         auto sub = sc.options[0];
         size_t role = sub.get_value<dpp::snowflake>(0); // 763183221209956362
-        std::cout << "somehting\n";
 
         try {
             ticket::connect(c, sql);
@@ -144,6 +143,7 @@ void admin::verify_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
                     dpp::component().add_component(dpp::component()
                                                     .set_type(dpp::cot_button)
                                                     .set_id("verify")
+                                                    .set_emoji("✔️")
                                                     .set_label("Verify")
                                                     .set_style(dpp::cos_primary))));
     }
