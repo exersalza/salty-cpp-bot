@@ -40,3 +40,4 @@ config.*
 build/
 !config.h
 !config.hpp
+!.idea/cmake.xml
