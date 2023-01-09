@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
                 createcmds(bot);
 
                 ticket::init_ticket_events(bot, conn, config, sql);
-                admin::init_admin_events(bot);
+                admin::init_verify_events(bot, conn, sql);
             }
         }
 

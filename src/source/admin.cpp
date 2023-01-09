@@ -11,18 +11,6 @@
 
 // later usage
 void admin::init_admin_events(dpp::cluster &bot) {
-    bot.log(dpp::ll_debug, "Initializing 'admin_events'");
-
-    bot.on_button_click([](const dpp::button_click_t &event) {
-        auto event_cmd = event.command;
-
-        if (event.custom_id == "verify") {
-            event.thinking(true);
-
-            auto user = event_cmd.usr;
-
-        }
-    });
 }
 
 void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
@@ -97,6 +85,34 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
 
 }
 
+void admin::init_verify_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::sql &sql) {
+    bot.log(dpp::ll_debug, "Initializing 'verify_events'");
+
+    bot.on_button_click([&bot, &c, &sql](const dpp::button_click_t &event) {
+        auto event_cmd = event.command;
+
+        if (event.custom_id == "verify") {
+            event.thinking(true);
+
+            dpp::user user = event_cmd.usr;
+            size_t role_id;
+
+            ticket::connect(c, sql);
+            mysqlpp::Query query = c.query();
+            query << fmt::format("select role_id from salty_cpp_bot.verify where server_id = {0}",
+                                 event.command.guild_id);
+
+            mysqlpp::StoreQueryResult res = query.store();
+            u::kill_query(query);
+            c.disconnect();
+            role_id = res[0]["role_id"];
+            std::cout << role_id << '\n';
+
+            bot.guild_member_add_role(event.command.guild_id, user.id, role_id);
+        }
+    });
+}
+
 void admin::verify_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
                            const dpp::command_interaction &cmd_data, const cfg::Config &conf,
                            mysqlpp::Connection &c, const cfg::sql &sql) {
@@ -106,7 +122,10 @@ void admin::verify_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
     if (sc.name == "role") {
         event.thinking(true);
         auto sub = sc.options[0];
-        size_t role = sub.get_value<dpp::snowflake>(0); // 763183221209956362
+        auto _role = sc.get_value<dpp::snowflake>(0);// 763183221209956362
+        size_t role = 0;
+
+        return;
 
         try {
             ticket::connect(c, sql);
