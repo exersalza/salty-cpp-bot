@@ -304,7 +304,7 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
             bot.message_delete(event_cmd.message_id, channel.id);
 
             // prevent rate limitation. works sometimes. but still needs some work. I think it is fixed, but the tests will show.
-            sleep(5);
+            sleep(2);
             try {
                 bot.channel_edit_permissions(channel.id, user_id, dpp::permissions::p_view_channel, 0, true);
 
