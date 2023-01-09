@@ -19,6 +19,9 @@ echo "Start bot..."
 docker run -d salty_cpp_bot:$(date "+%y%m%d")
 
 echo "Start Docker checker..."
-screen -U -m -d -S salty_cpp_bot_checker ./dockerChecker.py "salty_cpp_bot:$(date "+%y%m%d")"
+# Get the version in a file to survive script/server crashes
+echo "salty_cpp_bot:$(date "+%y%m%d")" > /home/.salty_cpp_bot_docker_version
+
+screen -U -m -d -S salty_cpp_bot_checker ./dockerChecker.py
 
 echo "Successfully started everything, you're good to go. :)"
