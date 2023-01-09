@@ -63,7 +63,6 @@ inline std::map<std::string, cmds> commands {
                     dpp::command_option(dpp::co_sub_command, "config", "Open config embed"),
                     dpp::command_option(dpp::co_sub_command, "enable", "Enable the ticket system"),
                     dpp::command_option(dpp::co_sub_command, "disable", "Disable the ticket system"),
-
 				}
 			}
 	},
@@ -123,6 +122,9 @@ inline std::map<std::string, cmds> commands {
                             .add_option(dpp::command_option(dpp::co_role, "role", "Set the Role.", true))
                     }
         }
+    },
+    {
+        "uptime", { "Tells you the Uptime from the Bot.", dpp::p_send_messages }
     }
 };
 

@@ -29,6 +29,8 @@ int main(int argc, char *argv[]) {
     cfg::Config config = cfg::Config("config.json");
     cfg::sql sql = config.getSqlConf();
     const std::string &token = config.getToken("dev");
+    long uptime = time(nullptr);
+
     std::map<int, std::string> ll_map {
             {0, "trace"},
             {1, "debug"},
@@ -142,7 +144,7 @@ int main(int argc, char *argv[]) {
 
     });
 
-    bot.on_slashcommand([&bot, &conn, &config, &sql](const dpp::slashcommand_t &event) {
+    bot.on_slashcommand([&bot, &conn, &config, &sql, &uptime](const dpp::slashcommand_t &event) {
         dpp::interaction interaction = event.command;
         dpp::command_interaction cmd_data = interaction.get_command_interaction();
 
@@ -175,6 +177,15 @@ int main(int argc, char *argv[]) {
             event.edit_response(dpp::message(
                     fmt::format("I'm still alive. Latency: {0:.02f}ms", (bot.rest_ping + ws_ping) * 1000))
                                         .set_flags(dpp::m_ephemeral));
+        }
+
+        if (interaction.get_command_name() == "uptime") {
+            event.thinking(true);
+
+            dpp::embed em;
+            em.set_title("Uptime");
+            em.add_field("", fmt::format("<t:{0}>", uptime), false);
+            event.edit_response(dpp::message(event.command.channel_id, em));
         }
     });
 
