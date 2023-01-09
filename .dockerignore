@@ -5,3 +5,4 @@ cmake-build-debug
 build
 example_config.json
 db_create.sql
+createAndRun.sh
