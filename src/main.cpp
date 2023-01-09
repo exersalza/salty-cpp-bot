@@ -184,7 +184,10 @@ int main(int argc, char *argv[]) {
 
             dpp::embed em;
             em.set_title("Uptime");
-            em.add_field("", fmt::format("<t:{0}>", uptime), false);
+            em.add_field("The Bot is online since", fmt::format("<t:{0}>", uptime), false);
+            em.set_footer("Kenexar.eu", bot.me.get_avatar_url());
+            em.set_color(config.b_color);
+
             event.edit_response(dpp::message(event.command.channel_id, em));
         }
     });

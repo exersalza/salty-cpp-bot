@@ -232,7 +232,9 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
 
             event.reply(dpp::message("ticket gets closed"));
 
-            bot.channel_edit(channel.set_name(fmt::format("closed-{0}", channel.name)));
+            // prevent rate limitation on channel edit
+            if (channel.name.find("closed-") != std::string::npos)
+                bot.channel_edit(channel.set_name(fmt::format("closed-{0}", channel.name)));
 
             connect(c, sql);
 
@@ -301,11 +303,9 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
 
             bot.message_delete(event_cmd.message_id, channel.id);
 
-            // prevent rate limitation. works sometimes. but still needs some work.
+            // prevent rate limitation. works sometimes. but still needs some work. I think it is fixed, but the tests will show.
             sleep(5);
             try {
-                bot.channel_edit(channel.set_name(std::regex_replace(channel.name, std::regex("closed-"), "")),
-                                 [](const dpp::confirmation_callback_t &confm) {});
                 bot.channel_edit_permissions(channel.id, user_id, dpp::permissions::p_view_channel, 0, true);
 
                 event.edit_original_response(fmt::format("<@{0}> your ticket got Re-Opened.", user_id));

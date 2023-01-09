@@ -124,14 +124,11 @@ void admin::verify_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
             u::kill_query(query);
             c.disconnect();
 
-            event.edit_response(fmt::format("<@&{0}> was set a Verified role.", role));
+            event.edit_response(fmt::format("<@&{0}> was set as an Verified role.", role));
         } catch (std::exception &e) {
             bot.log(dpp::ll_error, fmt::format("Can't create Verify Role, idk why {0}", e.what()));
             event.edit_response("Can't do that right now, please try again later.");
         }
-
-
-
     }
 
     if (sc.name == "send") {
