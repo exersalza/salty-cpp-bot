@@ -106,9 +106,9 @@ void admin::init_verify_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::s
             u::kill_query(query);
             c.disconnect();
             role_id = res[0]["role_id"];
-            std::cout << role_id << '\n';
 
             bot.guild_member_add_role(event.command.guild_id, user.id, role_id);
+            event.edit_response("You are Verified now. :)");
         }
     });
 }
@@ -122,10 +122,7 @@ void admin::verify_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
     if (sc.name == "role") {
         event.thinking(true);
         auto sub = sc.options[0];
-        auto _role = sc.get_value<dpp::snowflake>(0);// 763183221209956362
-        size_t role = 0;
-
-        return;
+        size_t role = sc.get_value<dpp::snowflake>(0); // 763183221209956362
 
         try {
             ticket::connect(c, sql);
@@ -142,7 +139,7 @@ void admin::verify_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
             u::kill_query(query);
             c.disconnect();
 
-            event.edit_response(fmt::format("<@&{0}> was set as an Verified role.", role));
+            event.edit_response(fmt::format("<@&{0}> is the new Verified role.", role));
         } catch (std::exception &e) {
             bot.log(dpp::ll_error, fmt::format("Can't create Verify Role, idk why {0}", e.what()));
             event.edit_response("Can't do that right now, please try again later.");
