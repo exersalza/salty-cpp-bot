@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     // Normal config shit
     cfg::Config config = cfg::Config("config.json");
     cfg::sql sql = config.getSqlConf();
-    const std::string &token = config.getToken("dev");
+    const std::string &token = config.getToken();
     long uptime = time(nullptr);
 
     std::map<int, std::string> ll_map {
