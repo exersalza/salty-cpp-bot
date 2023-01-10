@@ -7,7 +7,9 @@ import time
 
 def main():
     version = ""
-    with open("~/.salty_cpp_bot_docker_version", "r", encoding="utf-8") as f:
+    counter = 0
+    home = subprocess.run("echo $HOME", shell=True, check=True, capture_output=True).stdout.decode("utf-8")
+    with open(f"{home}/.salty_cpp_bot_docker_version", "r", encoding="utf-8") as f:
         version = f.read()
 
     while True:
@@ -18,6 +20,8 @@ def main():
             res = res.stdout.decode('utf-8')
             _id = res.split()[0]
             subprocess.run(f'docker start {_id}', shell=True, check=True)
+            counter += 1
+            print(f"Container crashed, restart: {counter}")
 
         time.sleep(30)
 
