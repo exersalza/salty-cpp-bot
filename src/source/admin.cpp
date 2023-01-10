@@ -176,7 +176,10 @@ void admin::verify_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
             .set_color(0x00ff00)
             .set_footer("Kenexar.eu - Verify", bot.me.get_avatar_url());
 
-        event.reply(dpp::message("Verify message created.").set_flags(dpp::m_ephemeral));
+        event.reply(dpp::message(fmt::format("Verify message created. {0} please don't forget to set a role "
+                                             "with `/verify role` otherwise will the verify system not work.",
+                                             event.command.usr.get_mention())).set_flags(dpp::m_ephemeral));
+
         bot.message_create(dpp::message(event.command.channel_id, em).add_component(
                     dpp::component().add_component(dpp::component()
                                                     .set_type(dpp::cot_button)
@@ -184,5 +187,14 @@ void admin::verify_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
                                                     .set_emoji("✔️")
                                                     .set_label("Verify")
                                                     .set_style(dpp::cos_primary))));
+
+        ticket::connect(c, sql);
+
+        mysqlpp::Query query = c.query();
+        query << fmt::format("insert into salty_cpp_bot.verify (server_id) values ({0});", event.command.guild_id);
+
+        // Do the query stuff here, so I can drop the db connection afterwards. copy & paste monkey here
+        query.execute();
+        c.disconnect();
     }
 }
