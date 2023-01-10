@@ -25,7 +25,7 @@ Otherwise, there is a `Dockerfile` ready to use.
 
 ### How to start the bot using a Dockerfile.
 1. Make sure you configured the `config.json` right.
-2. run `./createAndRun.sh`. This will create the Container and start it.
+2. run `./createAndRun.sh`. This will create the Container and start it. It also starts the `dockerChecker.py` that will look every 30 seconds if the container crashed and restart it when it's true.
 
 ### Run the bot without the Dockerfile
 Info: The bot is build on linux, when you're on Windows, please check how to Compile the libs on your system.
