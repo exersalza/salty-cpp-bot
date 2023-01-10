@@ -26,6 +26,9 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
         bool set_server_image = false;
         std::string title;
         std::string res;
+        size_t res_length;
+
+        const dpp::snowflake &channel_id = event.command.channel_id;
 
         for (auto &i : sc.options) {
             if (i.name == "embed") {
@@ -43,18 +46,29 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
                 if (at.content_type.find("charset=utf-8") && at.content_type.find("text/plain")) {
                     event.reply("Can't use that body content, file is not UTF-8 or not a Text file.");
                     ++c;
-                    continue;
+                    return;
                 }
 
                 char url[at.url.length()];
                 u::stoc(at.url, url);
 
-                url[strlen(url)-2] = '\0';
+                // url[strlen(url)-2] = '\0';
                 res = u::requests(url);
+                if (res.length() >= INT_MAX) {
+                    res_length = 4097;
+                    continue;
+                }
+
+                res_length = res.length();
             }
 
             if (i.name == "title") {
                 title = sc.get_value<std::string>(c);
+
+                if (title.length() > 256) {
+                    event.reply(dpp::message(channel_id, "Message can't be created with an Title more than 256 characters"));
+                    return;
+                }
             }
 
             ++c;
@@ -63,6 +77,11 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
         if (!title.length()) title = res.substr(0, res.find(' '));
 
         if (is_embed) {
+            if (res_length > 4096) {
+                event.reply(dpp::message(channel_id, "Message can't be created because the Text for "
+                                                                   "it, is too long to fit in an Embed. (Max size 4096 char.)"));
+                return;
+            }
             dpp::embed em;
 
             em.set_title(title)
@@ -74,13 +93,16 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
             if (set_server_image)
                 em.set_thumbnail(event.command.get_guild().get_icon_url());
 
-            bot.message_create(dpp::message(event.command.channel_id, em));
+            bot.message_create(dpp::message(channel_id, em));
         } else {
-            bot.message_create(dpp::message(event.command.channel_id,
-                                            fmt::format("**{0}**\n\n{1}", title, res)));
+            if ((title.length() + res_length) > 1996) {
+                event.reply(dpp::message(channel_id, fmt::format("Can't create message, Content or title needs to have a lower character count. ({0}/1996)", (title.length() + res_length))));
+                return;
+            }
+            bot.message_create(dpp::message(channel_id, fmt::format("**{0}**\n\n{1}", title, res)));
         }
 
-        event.reply(dpp::message(event.command.channel_id, "Message created.").set_flags(dpp::m_ephemeral));
+        event.reply(dpp::message(channel_id, "Message created.").set_flags(dpp::m_ephemeral));
     }
 
 }
@@ -122,7 +144,7 @@ void admin::verify_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
     if (sc.name == "role") {
         event.thinking(true);
         auto sub = sc.options[0];
-        size_t role = sc.get_value<dpp::snowflake>(0); // 763183221209956362
+        size_t role = sc.get_value<dpp::snowflake>(0);
 
         try {
             ticket::connect(c, sql);
@@ -151,7 +173,7 @@ void admin::verify_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
 
         em.set_title("Verify")
             .set_description("Please verify yourself with a press on the button below.")
-            .set_color(conf.b_color)
+            .set_color(0x00ff00)
             .set_footer("Kenexar.eu - Verify", bot.me.get_avatar_url());
 
         event.reply(dpp::message("Verify message created.").set_flags(dpp::m_ephemeral));
