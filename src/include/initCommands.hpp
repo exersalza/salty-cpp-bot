@@ -125,6 +125,9 @@ inline std::map<std::string, cmds> commands {
     },
     {
         "uptime", { "Tells you the Uptime from the Bot.", dpp::p_send_messages }
+    },
+    {
+        "credits", {"Show you the credits to the bot and website.", dpp::p_send_messages}
     }
 };
 

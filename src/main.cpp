@@ -190,6 +190,19 @@ int main(int argc, char *argv[]) {
 
             event.edit_response(dpp::message(event.command.channel_id, em));
         }
+
+        if (interaction.get_command_name() == "credits") {
+            event.thinking(true);
+
+            dpp::embed em;
+
+            em.set_title("Credits")
+              .set_description("Here can you see, who to blame.\n\n**Bot Creator**: [exersalza[>'-']>](https://github.com/exersalza)\n**Website Creator**: [ZerXDE](https://github.com/zerxgit)\n\n[Our Discord](https://discord.gg/W3Yf53dBMH) **|** [GitHub](https://github.com/exersalza/salty-cpp-bot)")
+              .set_color(config.b_color)
+              .set_footer("Kenexar.eu", bot.me.get_avatar_url());
+
+            event.edit_response(dpp::message(event.command.channel_id, em));
+        }
     });
 
     while (true) {
