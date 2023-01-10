@@ -6,6 +6,7 @@ WORKDIR /home
 
 # install deps
 RUN pacman -Sy archlinux-keyring --noconfirm
+RUN pacman-key --refresh-keys
 RUN pacman -Syyu --noconfirm
 RUN pacman -Sy git curl openssl cmake gcc make fmt nlohmann-json vim mysql --noconfirm
 
