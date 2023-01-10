@@ -12,11 +12,11 @@ fi
 
 echo "Create Container..."
 
-sudo docker build -t salty_cpp_bot:$(date "+%y%m%d") .
+docker build -t salty_cpp_bot:$(date "+%y%m%d") .
 sleep 1
 
 echo "Start bot..."
-sudo docker run -d salty_cpp_bot:$(date "+%y%m%d")
+docker run -d salty_cpp_bot:$(date "+%y%m%d")
 
 echo "Start Docker checker..."
 # Get the version in a file to survive script/server crashes
