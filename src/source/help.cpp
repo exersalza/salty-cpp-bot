@@ -5,6 +5,8 @@
 // Created by julian on 11/15/22.
 //
 
+#include <fmt/format.h>
+
 #include "../include/help.hpp"
 
 
@@ -19,7 +21,10 @@ void cog::help_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
       .set_timestamp(time(nullptr))
       .set_footer("Kenexar.eu", bot.me.get_avatar_url());
 
-    em.add_field("Ticket", "`/ticket create` to enable your ticket system", true);
+    em.add_field("Ticket", fmt::format("`/ticket create` to enable your ticket system.\n"
+                                       "`/ticket config` to lookup your ticket config.\n"
+                                       "`/ticket set [roles|category|...]` set your config values.\n"
+                                       "`/ticket enable/disable` enable or disable your ticket system.\n"), false);
 
     event.reply(dpp::message(event.command.channel_id, em));
 }
