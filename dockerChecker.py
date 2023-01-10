@@ -6,7 +6,6 @@ import time
 
 
 def main():
-    version = ""
     counter = 0
     home = subprocess.run("echo $HOME", shell=True, check=True, capture_output=True).stdout.decode("utf-8").replace('\n', '')
 
@@ -17,7 +16,6 @@ def main():
         res = subprocess.run(f'docker ps | grep "{version}"', capture_output=True, check=False, shell=True)
 
         if res.returncode:
-            print(version)
             res = subprocess.run(f'docker ps -a | grep "{version}"', capture_output=True, check=False, shell=True)
             res = res.stdout.decode('utf-8')
             _id = res.split()[0]
