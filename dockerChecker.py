@@ -7,7 +7,7 @@ import time
 
 def main():
     version = ""
-    with open("/home/.salty_cpp_bot_docker_version", "r", encoding="utf-8") as f:
+    with open("~/.salty_cpp_bot_docker_version", "r", encoding="utf-8") as f:
         version = f.read()
 
     while True:
