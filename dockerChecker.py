@@ -11,12 +11,13 @@ def main():
     home = subprocess.run("echo $HOME", shell=True, check=True, capture_output=True).stdout.decode("utf-8").replace('\n', '')
 
     with open(f"{home}/.salty_cpp_bot_docker_version", "r", encoding="utf-8") as f:
-        version = f.read()
+        version = f.read().replace('\n', '')
 
     while True:
         res = subprocess.run(f'docker ps | grep "{version}"', capture_output=True, check=False, shell=True)
 
         if res.returncode:
+            print(version)
             res = subprocess.run(f'docker ps -a | grep "{version}"', capture_output=True, check=False, shell=True)
             res = res.stdout.decode('utf-8')
             _id = res.split()[0]
