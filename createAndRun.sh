@@ -22,6 +22,7 @@ echo "Start Docker checker..."
 # Get the version in a file to survive script/server crashes
 echo "salty_cpp_bot:$(date "+%y%m%d")" > "$HOME"/.salty_cpp_bot_docker_version
 
+screen kill salty_cpp_bot_checker
 screen -dmS salty_cpp_bot_checker ./dockerChecker.py
 
 echo "Successfully started everything, you're good to go. :)"
