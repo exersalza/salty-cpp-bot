@@ -8,7 +8,8 @@ import time
 def main():
     version = ""
     counter = 0
-    home = subprocess.run("echo $HOME", shell=True, check=True, capture_output=True).stdout.decode("utf-8")
+    home = subprocess.run("echo $HOME", shell=True, check=True, capture_output=True).stdout.decode("utf-8").replace('\n', '')
+
     with open(f"{home}/.salty_cpp_bot_docker_version", "r", encoding="utf-8") as f:
         version = f.read()
 
