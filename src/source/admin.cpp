@@ -7,7 +7,7 @@
 
 
 #include "../include/admin.hpp"
-#include "../include/ticketCogs.hpp"
+#include "../include/ticket.hpp"
 
 // later usage
 void admin::init_admin_events(dpp::cluster &bot) {

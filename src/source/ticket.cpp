@@ -12,7 +12,7 @@
 #include <fmt/format.h>
 
 #include "../include/utils.hpp"
-#include "../include/ticketCogs.hpp"
+#include "../include/ticket.hpp"
 
 
 void ticket::connect(mysqlpp::Connection &c, const cfg::sql &sql) {

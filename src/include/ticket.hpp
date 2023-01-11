@@ -5,8 +5,8 @@
 // Created by julian on 11/4/22.
 //
 
-#ifndef DCBOT_TICKETCOGS_HPP
-#define DCBOT_TICKETCOGS_HPP
+#ifndef DCBOT_TICKET_HPP
+#define DCBOT_TICKET_HPP
 
 #include <string>
 #include <dpp/dpp.h>
@@ -76,4 +76,4 @@ namespace ticket {
 } // ticket
 
 
-#endif //DCBOT_TICKETCOGS_HPP
+#endif //DCBOT_TICKET_HPP

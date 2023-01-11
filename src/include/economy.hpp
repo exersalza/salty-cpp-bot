@@ -5,8 +5,8 @@
 // Created by julian on 11/4/22.
 //
 
-#ifndef DCBOT_ECONOMYCOGS_HPP
-#define DCBOT_ECONOMYCOGS_HPP
+#ifndef DCBOT_ECONOMY_HPP
+#define DCBOT_ECONOMY_HPP
 
 #include <string>
 #include <vector>
@@ -31,4 +31,4 @@ namespace ec {
 
 
 
-#endif //DCBOT_ECONOMYCOGS_HPP
+#endif //DCBOT_ECONOMY_HPP
