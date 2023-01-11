@@ -1,3 +1,6 @@
+create database if not exists salty_cpp_bot;
+use salty_cpp_bot;
+
 create table if not exists cur_tickets
 (
     id        bigint auto_increment
