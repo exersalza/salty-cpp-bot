@@ -5,12 +5,14 @@
 // Created by julian on 11/17/22.
 //
 
+#include "config.hpp"
+
 #ifndef DCBOT_TWITCHINTEGRATION_HPP
 #define DCBOT_TWITCHINTEGRATION_HPP
 
 
-class twitchIntegration {
-
+namespace twitch {
+    void generateNewToken(cfg::twitch&);
 };
 
 
