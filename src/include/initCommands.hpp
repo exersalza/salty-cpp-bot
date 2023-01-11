@@ -128,6 +128,9 @@ inline std::map<std::string, cmds> commands {
     },
     {
         "credits", {"Show you the credits to the bot and website.", dpp::p_send_messages}
+    },
+    {
+        "twitch", {"Configure your streamer stuff", dpp::p_administrator}
     }
 };
 
