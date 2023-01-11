@@ -7,9 +7,11 @@
 
 #include <fstream>
 #include <iostream>
-#include <dpp/nlohmann/json.hpp>
+#include <nlohmann/json.hpp>
 
 #include "../include/config.hpp"
+
+using json = nlohmann::json;
 
 
 cfg::Config::Config(std::string &&path) : path(path) {
@@ -48,6 +50,22 @@ cfg::Config::Config(std::string &&path) : path(path) {
     sql.password = data["password"].get_ref<const std::string&>().c_str();
 
     return sql;
+}
+
+[[nodiscard]] cfg::twitch cfg::Config::getTwitchConf() {
+
+    if (data["db"].empty()) {
+        std::fstream f(path);
+        json _data = json::parse(f);
+
+        this->data = _data;
+    }
+
+    return {
+        data["twitch_client"],
+        data["twitch_secret"],
+        data["twitch_oauth"]
+    };
 }
 
 const std::string &cfg::Config::getToken() const {

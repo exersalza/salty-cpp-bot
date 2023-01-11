@@ -9,6 +9,7 @@
 #define DCBOT_CONFIG_HPP
 
 #include <string>
+#include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
 
@@ -18,6 +19,12 @@ namespace cfg {
         const char* password;
         const char* db;
         const char* host;
+    };
+
+    struct twitch {
+        const std::string id;
+        const std::string secret;
+        std::string oauth;
     };
 
     class Config {
@@ -32,6 +39,7 @@ namespace cfg {
         // SQL - Set a to do tag here, when you insert real data. (I think only usable in Clion but not sure.)
 
         [[nodiscard]] sql getSqlConf();
+        [[nodiscard]] twitch getTwitchConf();
 
         int b_color = 0xbc3440;
         std::string log_webhook;
