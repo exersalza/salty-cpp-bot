@@ -25,6 +25,7 @@ namespace u {
     [[maybe_unused]] bool file_exists(const std::string &name);
     [[maybe_unused]] std::string stol(const std::string &name);
     [[maybe_unused]] std::string stou(const std::string &name);
+    [[maybe_unused]] int stoc(const std::string &src, char* dest);
 
     int kill_query(mysqlpp::Query &query);
 
@@ -32,7 +33,8 @@ namespace u {
     void presence_update(dpp::cluster &bot);
 
     std::string requests(const char* url);
-    int stoc(const std::string &src, char* dest);
+    std::string requests(const char* url, std::vector<char*>& header);
+    std::string post(const char* url, const char* post_opt);
 
 } // u
 

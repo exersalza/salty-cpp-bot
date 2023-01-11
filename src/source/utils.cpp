@@ -149,7 +149,58 @@ std::string u::requests(const char* url) {
     return readBuffer;
 }
 
-int u::stoc(const std::string &src, char* dest) {
+std::string u::requests(const char* url, std::vector<char*>& header) {
+    CURL *curl;
+    CURLcode cres;
+    std::string readBuffer;
+
+
+    curl = curl_easy_init();
+
+    if (curl) {
+        struct curl_slist* chunk = nullptr;
+
+        for (auto i : header) {
+            chunk = curl_slist_append(chunk, i);
+        }
+
+        curl_easy_setopt(curl, CURLOPT_URL, url);
+        curl_easy_setopt(curl, CURLOPT_HEADER, chunk);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+
+        cres = curl_easy_perform(curl);
+        curl_easy_cleanup(curl);
+        curl_slist_free_all(chunk);
+    }
+
+    return readBuffer;
+}
+
+std::string u::post(const char* url, const char* post_opt) {
+    CURL *curl;
+    CURLcode cres;
+    std::string read_buffer;
+
+    curl = curl_easy_init();
+
+    if (curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, url);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_opt);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &read_buffer);
+
+        cres = curl_easy_perform(curl);
+        if(cres != CURLE_OK) {
+            std::cout << "Cant do request " << curl_easy_strerror(cres);
+        }
+        curl_easy_cleanup(curl);
+    }
+
+    return read_buffer;
+}
+
+[[maybe_unused]] int u::stoc(const std::string &src, char* dest) {
     try {
         for (int i = 0; i < src.length(); ++i)
             dest[i] = src[i];
