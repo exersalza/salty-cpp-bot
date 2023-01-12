@@ -7,6 +7,8 @@
 
 #include "../include/user.hpp"
 
+// todo: welcome/bye thingi
+
 void user::init_user_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::Config &config) {
 
 }
