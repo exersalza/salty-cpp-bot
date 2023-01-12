@@ -104,7 +104,7 @@ int u::kill_query(mysqlpp::Query &query) {
 
     try {
         for (int i = 0; query.more_results(); ++i) { query.store_next(); }
-    } catch (std::exception e) {
+    } catch (std::exception &e) {
         return 1;
     }
     return 0;
@@ -149,7 +149,7 @@ std::string u::requests(const char* url) {
     return readBuffer;
 }
 
-std::string u::requests(const char* url, std::vector<char*>& header) {
+std::string u::requests(const char* url, std::vector<const char*>& header) {
     CURL *curl;
     CURLcode cres;
     std::string readBuffer;
@@ -165,7 +165,7 @@ std::string u::requests(const char* url, std::vector<char*>& header) {
         }
 
         curl_easy_setopt(curl, CURLOPT_URL, url);
-        curl_easy_setopt(curl, CURLOPT_HEADER, chunk);
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
 

@@ -29,12 +29,21 @@ namespace u {
 
     int kill_query(mysqlpp::Query &query);
 
-
     void presence_update(dpp::cluster &bot);
 
     std::string requests(const char* url);
-    std::string requests(const char* url, std::vector<char*>& header);
+    std::string requests(const char* url, std::vector<const char*>& header);
     std::string post(const char* url, const char* post_opt);
+
+    struct twitch_channel {
+        std::string name;
+        std::string title;
+        std::string game;
+        long game_id;
+        std::string thumbnail;
+        int viewer;
+
+    };
 
 } // u
 
