@@ -5,12 +5,14 @@
 // Created by julian on 29.10.22.
 // When the javelin hit's there, the guys are literally grown up and got a job.
 
+#include <map>
 #include <regex>
 #include <ctime>
 #include <iostream>
 #include <unistd.h>
 #include <dpp/dpp.h>
 #include <fmt/format.h>
+#include <bits/stdc++.h>
 #include <mysql++/mysql++.h>
 
 #include "include/help.hpp"
@@ -19,16 +21,99 @@
 #include "include/tests.hpp"
 #include "include/utils.hpp"
 #include "include/config.hpp"
-#include "include/ticketCogs.hpp"
+#include "include/ticket.hpp"
 #include "include/initCommands.hpp"
+#include "include/twitchIntegration.hpp"
 
 
 int main(int argc, char *argv[]) {
-
     // Normal config shit
     cfg::Config config = cfg::Config("config.json");
     cfg::sql sql = config.getSqlConf();
-    const std::string &token = config.getToken();
+
+    // SQL Shit
+    mysqlpp::Connection conn;
+    ticket::connect(conn, sql);
+
+    if (!conn.connected()) {
+        std::cout << "Couldn't connect to db..." << std::endl;
+        return -1;
+    }
+
+    cfg::twitch twitch_config = config.getTwitchConf();
+
+    std::vector<const char *> helix_header;
+    std::multimap<size_t, size_t> twitch_channel_map; // channel_id and twitch_channel id
+    std::map<size_t, u::twitch_channel> twitch_content_map; // twitch channel info thingi
+    std::unordered_set<size_t> ids; // add all streamer ids from the db and remove dupes
+    std::vector<std::string> query_strings;
+    std::string bearer {fmt::format("Authorization: Bearer {0}", twitch_config.oauth)};
+    std::string client_id {fmt::format("Client-Id: {0}", twitch_config.id)};
+
+    helix_header.push_back(bearer.c_str());
+    helix_header.push_back(client_id.c_str());
+
+
+    // Twitch integration
+    mysqlpp::Query query = conn.query();
+    query << fmt::format("select * from salty_cpp_bot.twitch");
+    mysqlpp::StoreQueryResult res = query.store();
+
+    twitch_channel_map.clear();
+
+    for (auto &i : res) {
+        twitch_channel_map.insert(std::pair(i["channel_id"], i["stream_id"]));
+        ids.insert(i["stream_id"]);
+    }
+
+    conn.disconnect();
+
+    short counter = 0;
+    std::stringstream query_str;
+
+    for (auto &i : ids) {
+        if (counter >= 100) {
+            query_str << "first=100";
+            query_strings.push_back(query_str.str());
+            query_str.clear();
+        }
+        query_str << "user_id=" << i << "&";
+        ++counter;
+    }
+    query_strings.push_back(query_str.str());
+
+
+    // https://dev.twitch.tv/docs/api/reference/#get-streams
+    for (auto &i : query_strings) {
+        json response = json::parse(u::requests(fmt::format("https://api.twitch.tv/helix/streams?{0}", i).c_str(), helix_header)); // {"error":"Unauthorized","status":401,"message":"Invalid OAuth token"}
+
+        if (response.find("status") != response.end()) {
+            twitch::generateNewToken(twitch_config);
+            response = json::parse(u::requests(fmt::format("https://api.twitch.tv/helix/streams?{0}", i).c_str(), helix_header));
+        }
+
+        json &data = response["data"];
+        for (json &j : data) {
+            if (twitch_content_map.find(data["user_id"]) != twitch_content_map.end())
+                continue;
+
+            twitch_content_map[data["user_id"]] = {
+                data["user_name"],
+                data["title"],
+                data["game_name"],
+                data["thumbnail_url"],
+                data["viewer_count"]
+            };
+
+        }
+    }
+
+
+
+    return 0;
+
+
+    const std::string &token = config.getToken("dev"); // todo: remove dev
     long uptime = time(nullptr);
 
     std::map<int, std::string> ll_map {
@@ -39,16 +124,6 @@ int main(int argc, char *argv[]) {
             {4, "error"},
             {5, "critical"}
     };
-
-    // SQL Shit
-    mysqlpp::Connection conn;
-
-    ticket::connect(conn, sql);
-
-    if (!conn.connected()) {
-        std::cout << "Couldn't connect to db..." << std::endl;
-        return -1;
-    }
 
     dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
 
@@ -197,7 +272,11 @@ int main(int argc, char *argv[]) {
             dpp::embed em;
 
             em.set_title("Credits")
-              .set_description("Here can you see, who to blame.\n\n**Bot Creator**: [exersalza[>'-']>](https://github.com/exersalza)\n**Website Creator**: [ZerXDE](https://github.com/zerxgit)\n\n[Our Discord](https://discord.gg/W3Yf53dBMH) **|** [GitHub](https://github.com/exersalza/salty-cpp-bot)")
+              .set_description("Here can you see, who to blame.\n\n**Bot Creator**: "
+                               "[exersalza[>'-']>](https://github.com/exersalza)\n"
+                               "**Website Creator**: [ZerXDE](https://github.com/zerxgit)\n\n"
+                               "[Our Discord](https://discord.gg/W3Yf53dBMH) "
+                               "**|** [GitHub](https://github.com/exersalza/salty-cpp-bot)")
               .set_color(config.b_color)
               .set_footer("Kenexar.eu", bot.me.get_avatar_url());
 

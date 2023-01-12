@@ -39,10 +39,8 @@ namespace u {
         std::string name;
         std::string title;
         std::string game;
-        long game_id;
         std::string thumbnail;
         int viewer;
-
     };
 
 } // u
