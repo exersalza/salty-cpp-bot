@@ -8,6 +8,7 @@
 #include <map>
 #include <regex>
 #include <ctime>
+#include <chrono>
 #include <iostream>
 #include <unistd.h>
 #include <dpp/dpp.h>
@@ -49,12 +50,20 @@ int main(int argc, char *argv[]) {
     std::vector<std::string> query_strings;
     std::string bearer {fmt::format("Authorization: Bearer {0}", twitch_config.oauth)};
     std::string client_id {fmt::format("Client-Id: {0}", twitch_config.id)};
+    std::vector<std::string> active_streams;
 
     helix_header.push_back(bearer.c_str());
     helix_header.push_back(client_id.c_str());
 
 
     // Twitch integration
+    std::fstream file("CACHE_twitch_content_map.json");
+
+    if (!file.fail())
+        twitch_content_map = json::parse(file);
+
+    file.close();
+
     mysqlpp::Query query = conn.query();
     query << fmt::format("select * from salty_cpp_bot.twitch");
     mysqlpp::StoreQueryResult res = query.store();
@@ -77,11 +86,12 @@ int main(int argc, char *argv[]) {
             query_strings.push_back(query_str.str());
             query_str.clear();
         }
+
         query_str << "user_id=" << i << "&";
         ++counter;
     }
     query_strings.push_back(query_str.str());
-
+    active_streams.clear();
 
     // https://dev.twitch.tv/docs/api/reference/#get-streams
     for (auto &i : query_strings) {
@@ -93,29 +103,38 @@ int main(int argc, char *argv[]) {
         }
 
         json &data = response["data"];
+
+
         for (auto &j : data) {
             if (twitch_content_map.contains(j["user_id"]))
                 continue;
 
-
+            active_streams.push_back((std::string)j["user_id"]);
             twitch_content_map[(std::string)j["user_id"]] = {
                     {"user_name", j["user_name"]},
                     {"title", j["title"]},
                     {"game_name", j["game_name"]},
                     {"thumbnail_url", j["thumbnail_url"]},
-                    {"viewer_count", j["viewer_count"]}
+                    {"viewer_count", j["viewer_count"]},
+                    {"send", false}
             };
+        }
+
+        // yeet offline channels
+        for (auto &el : twitch_content_map.items()) {
+            if (std::find(active_streams.begin(), active_streams.end(), el.key()) == active_streams.end()) {
+                twitch_content_map.erase(el.key());
+            }
         }
     }
 
-    std::ofstream TMP_twitch_content_map("TMP_twitch_content_map.json");
+    // create cache
+    std::ofstream TMP_twitch_content_map("CACHE_twitch_content_map.json");
     TMP_twitch_content_map << twitch_content_map;
     TMP_twitch_content_map.close();
 
 
-
     return 0;
-
 
     const std::string &token = config.getToken("dev"); // todo:  remove dev
     long uptime = time(nullptr);
@@ -251,6 +270,7 @@ int main(int argc, char *argv[]) {
 
         if (interaction.get_command_name() == "ping") {
             event.thinking(true);
+
             double ws_ping = bot.get_shard(0)->websocket_ping;
 
             event.edit_response(dpp::message(
