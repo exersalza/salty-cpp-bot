@@ -35,14 +35,6 @@ namespace u {
     std::string requests(const char* url, std::vector<const char*>& header);
     std::string post(const char* url, const char* post_opt);
 
-    struct twitch_channel {
-        std::string name;
-        std::string title;
-        std::string game;
-        std::string thumbnail;
-        int viewer;
-    };
-
 } // u
 
 

@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
 
     std::vector<const char *> helix_header;
     std::multimap<size_t, size_t> twitch_channel_map; // channel_id and twitch_channel id
-    std::map<size_t, u::twitch_channel> twitch_content_map; // twitch channel info thingi
+    json twitch_content_map; // twitch channel info thingi
     std::unordered_set<size_t> ids; // add all streamer ids from the db and remove dupes
     std::vector<std::string> query_strings;
     std::string bearer {fmt::format("Authorization: Bearer {0}", twitch_config.oauth)};
@@ -93,27 +93,31 @@ int main(int argc, char *argv[]) {
         }
 
         json &data = response["data"];
-        for (json &j : data) {
-            if (twitch_content_map.find(data["user_id"]) != twitch_content_map.end())
+        for (auto &j : data) {
+            if (twitch_content_map.contains(j["user_id"]))
                 continue;
 
-            twitch_content_map[data["user_id"]] = {
-                data["user_name"],
-                data["title"],
-                data["game_name"],
-                data["thumbnail_url"],
-                data["viewer_count"]
-            };
 
+            twitch_content_map[(std::string)j["user_id"]] = {
+                    {"user_name", j["user_name"]},
+                    {"title", j["title"]},
+                    {"game_name", j["game_name"]},
+                    {"thumbnail_url", j["thumbnail_url"]},
+                    {"viewer_count", j["viewer_count"]}
+            };
         }
     }
+
+    std::ofstream TMP_twitch_content_map("TMP_twitch_content_map.json");
+    TMP_twitch_content_map << twitch_content_map;
+    TMP_twitch_content_map.close();
 
 
 
     return 0;
 
 
-    const std::string &token = config.getToken("dev"); // todo: remove dev
+    const std::string &token = config.getToken("dev"); // todo:  remove dev
     long uptime = time(nullptr);
 
     std::map<int, std::string> ll_map {
