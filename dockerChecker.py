@@ -17,6 +17,7 @@ def main():
 
         if res.returncode:
             res = subprocess.run(f'docker ps -a | grep "{version}"', capture_output=True, check=False, shell=True)
+            print(res)
             res = res.stdout.decode('utf-8')
             _id = res.split()[0]
             subprocess.run(f'docker start {_id}', shell=True, check=True)
