@@ -5,6 +5,11 @@
 // Created by julian on 11/17/22.
 //
 
+#include <dpp/dpp.h>
+#include <bits/stdc++.h>
+#include <mysql++/mysql++.h>
+
+
 #include "config.hpp"
 
 #ifndef DCBOT_TWITCHINTEGRATION_HPP
@@ -12,7 +17,8 @@
 
 
 namespace twitch {
-    void generateNewToken(cfg::twitch&);
+    void generateNewToken(cfg::twitch& twitch);
+    void init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& bot);
 };
 
 

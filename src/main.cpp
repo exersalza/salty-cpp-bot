@@ -13,7 +13,6 @@
 #include <unistd.h>
 #include <dpp/dpp.h>
 #include <fmt/format.h>
-#include <bits/stdc++.h>
 #include <mysql++/mysql++.h>
 
 #include "include/help.hpp"
@@ -28,6 +27,8 @@
 
 
 int main(int argc, char *argv[]) {
+
+
     // Normal config shit
     cfg::Config config = cfg::Config("config.json");
     cfg::sql sql = config.getSqlConf();
@@ -40,101 +41,6 @@ int main(int argc, char *argv[]) {
         std::cout << "Couldn't connect to db..." << std::endl;
         return -1;
     }
-
-    cfg::twitch twitch_config = config.getTwitchConf();
-
-    std::vector<const char *> helix_header;
-    std::multimap<size_t, size_t> twitch_channel_map; // channel_id and twitch_channel id
-    json twitch_content_map; // twitch channel info thingi
-    std::unordered_set<size_t> ids; // add all streamer ids from the db and remove dupes
-    std::vector<std::string> query_strings;
-    std::string bearer {fmt::format("Authorization: Bearer {0}", twitch_config.oauth)};
-    std::string client_id {fmt::format("Client-Id: {0}", twitch_config.id)};
-    std::vector<std::string> active_streams;
-
-    helix_header.push_back(bearer.c_str());
-    helix_header.push_back(client_id.c_str());
-
-
-    // Twitch integration
-    std::fstream file("CACHE_twitch_content_map.json");
-
-    if (!file.fail())
-        twitch_content_map = json::parse(file);
-
-    file.close();
-
-    mysqlpp::Query query = conn.query();
-    query << fmt::format("select * from salty_cpp_bot.twitch");
-    mysqlpp::StoreQueryResult res = query.store();
-
-    twitch_channel_map.clear();
-
-    for (auto &i : res) {
-        twitch_channel_map.insert(std::pair(i["channel_id"], i["stream_id"]));
-        ids.insert(i["stream_id"]);
-    }
-
-    conn.disconnect();
-
-    short counter = 0;
-    std::stringstream query_str;
-
-    for (auto &i : ids) {
-        if (counter >= 100) {
-            query_str << "first=100";
-            query_strings.push_back(query_str.str());
-            query_str.clear();
-        }
-
-        query_str << "user_id=" << i << "&";
-        ++counter;
-    }
-    query_strings.push_back(query_str.str());
-    active_streams.clear();
-
-    // https://dev.twitch.tv/docs/api/reference/#get-streams
-    for (auto &i : query_strings) {
-        json response = json::parse(u::requests(fmt::format("https://api.twitch.tv/helix/streams?{0}", i).c_str(), helix_header)); // {"error":"Unauthorized","status":401,"message":"Invalid OAuth token"}
-
-        if (response.find("status") != response.end()) {
-            twitch::generateNewToken(twitch_config);
-            response = json::parse(u::requests(fmt::format("https://api.twitch.tv/helix/streams?{0}", i).c_str(), helix_header));
-        }
-
-        json &data = response["data"];
-
-
-        for (auto &j : data) {
-            if (twitch_content_map.contains(j["user_id"]))
-                continue;
-
-            active_streams.push_back((std::string)j["user_id"]);
-            twitch_content_map[(std::string)j["user_id"]] = {
-                    {"user_name", j["user_name"]},
-                    {"title", j["title"]},
-                    {"game_name", j["game_name"]},
-                    {"thumbnail_url", j["thumbnail_url"]},
-                    {"viewer_count", j["viewer_count"]},
-                    {"send", false}
-            };
-        }
-
-        // yeet offline channels
-        for (auto &el : twitch_content_map.items()) {
-            if (std::find(active_streams.begin(), active_streams.end(), el.key()) == active_streams.end()) {
-                twitch_content_map.erase(el.key());
-            }
-        }
-    }
-
-    // create cache
-    std::ofstream TMP_twitch_content_map("CACHE_twitch_content_map.json");
-    TMP_twitch_content_map << twitch_content_map;
-    TMP_twitch_content_map.close();
-
-
-    return 0;
 
     const std::string &token = config.getToken("dev"); // todo:  remove dev
     long uptime = time(nullptr);
@@ -162,7 +68,7 @@ int main(int argc, char *argv[]) {
         std::cout << output_str << '\n';
 
         if (!config.log_webhook.empty()) {
-            if (lt.message.find("Initial") != std::string::npos) {
+            if (lt.message.find("Initial") != std::string::npos) { // GUILD_AUDIT_LOG_ENTRY_CREATE bug - not fixed
                 return;
             }
 
@@ -175,6 +81,8 @@ int main(int argc, char *argv[]) {
     bot.on_ready([&bot, &argc, &argv, &conn, &sql, &config](const dpp::ready_t &event) {
         if (dpp::run_once<struct register_bot_commands>()) {
             if (argc == 2 && !strcmp(argv[1], "--init")) {
+                twitch::init(config, conn, bot);
+
                 std::thread thr_presence([&bot]() {
                     bot.log(dpp::ll_info, "Presence warmup");
                     sleep(90);
