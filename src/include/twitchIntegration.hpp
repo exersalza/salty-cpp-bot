@@ -11,6 +11,7 @@
 
 
 #include "config.hpp"
+#include "ticket.hpp"
 
 #ifndef DCBOT_TWITCHINTEGRATION_HPP
 #define DCBOT_TWITCHINTEGRATION_HPP
@@ -18,7 +19,7 @@
 
 namespace twitch {
     void generateNewToken(cfg::twitch& twitch);
-    void init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& bot);
+    void init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& bot, cfg::sql& sql);
 };
 
 

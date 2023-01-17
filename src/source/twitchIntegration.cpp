@@ -31,7 +31,7 @@ void twitch::generateNewToken(cfg::twitch& twitch_config) {
     twitch_config.oauth = j_filtered["access_token"];
 }
 
-void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& bot) {
+void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& bot, cfg::sql& sql) {
     cfg::twitch twitch_config = config.getTwitchConf();
     json twitch_content_map; // twitch channel info thingi
     // Twitch integration
@@ -55,10 +55,13 @@ void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& 
     helix_header.push_back(client_id.c_str());
 
 
+    conn.connect(sql.db, sql.host, sql.user, sql.password);
 
     mysqlpp::Query query = conn.query();
-    query << fmt::format("select * from salty_cpp_bot.twitch");
+    query << "select * from salty_cpp_bot.twitch";
+
     mysqlpp::StoreQueryResult res = query.store();
+    conn.disconnect();
 
     twitch_channel_map.clear();
 
@@ -67,11 +70,10 @@ void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& 
             twitch_channel_map[(std::string)i["stream_id"]] = {};
 
 
-        twitch_channel_map[(std::string)i["stream_id"]] += (size_t)i["channel_id"];
+        twitch_channel_map[(std::string)i["stream_id"]] += std::pair<size_t, std::string>((size_t)i["channel_id"], (std::string)i["message"]);
         ids.insert(i["stream_id"]);
     }
 
-    conn.disconnect();
 
     short counter = 0;
     std::stringstream query_str;
@@ -114,6 +116,8 @@ void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& 
                     {"game_name", j["game_name"]},
                     {"thumbnail_url", j["thumbnail_url"]},
                     {"viewer_count", j["viewer_count"]},
+                    {"lang", j["language"]},
+                    {"started_at", j["started_at"]},
                     {"send", false}
             };
         }
@@ -133,30 +137,56 @@ void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& 
     }
 
     for (auto &i : twitch_channel_map.items()) {
-        if (!twitch_content_map.contains(i.key()))
+        if (!twitch_content_map.contains(i.key()) || twitch_content_map[i.key()]["send"])
             continue;
 
         auto& streamer = twitch_content_map[i.key()];
+        dpp::embed em;
+
+        auto name = streamer["user_name"];
+        auto viewer_count = streamer["viewer_count"];
+        std::stringstream m;
+        m << viewer_count;
+
+        struct tm tm {};
+        std::string ts = streamer["started_at"];
+
+        strptime(ts.c_str(), "%Y-%m-%dT%H:%M:%SZ", &tm);
+
+        em.set_author(fmt::format("{0} is now Live!", name),
+                      fmt::format("https://twitch.tv/{0}", name),
+                      bot.me.get_avatar_url())
+          .set_title(streamer["title"])
+          .set_url(fmt::format("https://twitch.tv/{0}", name))
+          .set_color(0x6441a5)
+          .add_field("Game:", (std::string)streamer["game_name"], true)
+          .add_field("Viewer count:", m.str(), true)
+          .set_image(fmt::format("https://static-cdn.jtvnw.net/previews-ttv/live_user_{0}-{width}x{height}.jpg",
+                                 u::stol(name), fmt::arg("width", 1920), fmt::arg("height", 1080)))
+          .set_footer(fmt::format("Kenexar.eu - Lang: {}", streamer["lang"]), bot.me.get_avatar_url())
+          .set_timestamp(mktime(&tm));
 
         for (auto &j : twitch_channel_map[i.key()]) {
-            dpp::embed em;
+            dpp::message msg;
+            if (j[1] != "NULL") {
+                msg = {(size_t) j[0], (std::string) j[1]};
 
-            auto name = streamer["user_name"];
-            std::stringstream Turl;
-            Turl << fmt::format("{0}", streamer["thumbnail_url"]);
-            auto url = Turl.str();
+                if (((std::string)j[1]).find("@everyone") != std::string::npos) {
+                    msg.set_allowed_mentions(false, false, true, false, {}, {});
+                }
+                msg.add_embed(em);
+            } else {
+                msg = {(size_t) j[0], em};
+            }
 
-            em.set_author(fmt::format("{0} is now Live!", name),
-                          fmt::format("https://twitch.tv/{0}", name),
-                          bot.me.get_avatar_url())
-              .set_title(streamer["title"])
-              .set_url(fmt::format("https://twitch.tv/{0}", name))
-              .set_image(fmt::format("https://static-cdn.jtvnw.net/previews-ttv/live_user_{0}-{width}x{height}.jpg",
-                                     u::stol(name), fmt::arg("width", 1920), fmt::arg("height", 1080)));
-
-            bot.message_create(dpp::message((size_t)j, em));
+            msg.add_component(dpp::component().add_component(dpp::component()
+                                                .set_type(dpp::cot_button)
+                                                .set_label("Watch it")
+                                                .set_style(dpp::cos_link)
+                                                .set_url(fmt::format("https://twitch.tv/{}", name))));
+            bot.message_create(msg);
         }
-
+        twitch_content_map[i.key()]["send"] = true;
     }
 
     // create cache
