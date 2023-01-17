@@ -27,8 +27,6 @@
 
 
 int main(int argc, char *argv[]) {
-
-
     // Normal config shit
     cfg::Config config = cfg::Config("config.json");
     cfg::sql sql = config.getSqlConf();
@@ -41,6 +39,7 @@ int main(int argc, char *argv[]) {
         std::cout << "Couldn't connect to db..." << std::endl;
         return -1;
     }
+    conn.disconnect();
 
     const std::string &token = config.getToken("dev"); // todo:  remove dev
     long uptime = time(nullptr);
@@ -68,7 +67,8 @@ int main(int argc, char *argv[]) {
         std::cout << output_str << '\n';
 
         if (!config.log_webhook.empty()) {
-            if (lt.message.find("Initial") != std::string::npos) { // GUILD_AUDIT_LOG_ENTRY_CREATE bug - not fixed
+            if (lt.message.find("Initial") != std::string::npos
+                        || lt.message.find("GUILD_AUDIT_LOG_ENTRY_CREATE") != std::string::npos) { // GUILD_AUDIT_LOG_ENTRY_CREATE bug - not fixed
                 return;
             }
 
@@ -81,16 +81,16 @@ int main(int argc, char *argv[]) {
     bot.on_ready([&bot, &argc, &argv, &conn, &sql, &config](const dpp::ready_t &event) {
         if (dpp::run_once<struct register_bot_commands>()) {
             if (argc == 2 && !strcmp(argv[1], "--init")) {
-                twitch::init(config, conn, bot);
-
-                std::thread thr_presence([&bot]() {
+                std::thread thr_presence([&bot, &conn, &config, &sql]() {
                     bot.log(dpp::ll_info, "Presence warmup");
+                    twitch::init(config, conn, bot, sql);
                     sleep(90);
                     bot.log(dpp::ll_info, "Presence gonna start now.");
 
                     while (true) {
                         try {
                             bot.set_presence(dpp::presence(dpp::ps_online, dpp::activity_type::at_watching, "the development of me."));
+                            twitch::init(config, conn, bot, sql);
                             sleep(120);
                         } catch (std::exception &e) {
                             bot.log(dpp::ll_error, fmt::format("FUCK, somethin went wron {0}", e.what()));
@@ -98,24 +98,6 @@ int main(int argc, char *argv[]) {
                     }
                 });
                 thr_presence.detach();
-
-                std::thread thr_ping_loop1([&conn, &bot, &sql]() {
-                    bot.log(dpp::ll_debug, "event_loop 'ping_loop1' started.");
-                    while (true) {
-                        conn.connect(sql.db, sql.host, sql.user, sql.password);
-                        if (!conn.ping()) {
-                            bot.log(dpp::ll_error, "Ping to db failed, tryn again in 30 seconds.");
-
-                            conn.connect(sql.db, sql.host, sql.user, sql.password);
-                            sleep(30);
-                            continue;
-                        }
-                        conn.disconnect();
-                        sleep(60 * 60 * 1);
-                    }
-                });
-
-                thr_ping_loop1.detach();
                 --argc;
 
                 // IT'S NOT MANUEL ANYMORE
