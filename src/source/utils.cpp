@@ -154,7 +154,6 @@ std::string u::requests(const char* url, std::vector<const char*>& header) {
     CURLcode cres;
     std::string readBuffer;
 
-
     curl = curl_easy_init();
 
     if (curl) {

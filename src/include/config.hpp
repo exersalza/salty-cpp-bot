@@ -49,6 +49,7 @@ namespace cfg {
         std::string token;
         std::string dev_token;
         std::string path;
+        std::string twitch_path;
     };
 
 

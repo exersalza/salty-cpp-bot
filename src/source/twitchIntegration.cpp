@@ -29,6 +29,17 @@ void twitch::generateNewToken(cfg::twitch& twitch_config) {
     // parse (with callback) and serialize JSON
     json j_filtered = json::parse(res, cb);
     twitch_config.oauth = j_filtered["access_token"];
+
+    json config;
+    config["twitch_client"] = twitch_config.id;
+    config["twitch_secret"] = twitch_config.secret;
+    config["twitch_oauth"] = twitch_config.oauth;
+
+    // dump new file.
+    std::ofstream of("twitch_config.json");
+    of << config;
+    of.close();
+
 }
 
 void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& bot, cfg::sql& sql) {
@@ -43,14 +54,14 @@ void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& 
     file.close();
 
 
-    std::string bearer {fmt::format("Authorization: Bearer {0}", twitch_config.oauth)};
-    std::string client_id {fmt::format("Client-Id: {0}", twitch_config.id)};
     std::vector<const char *> helix_header;
     json twitch_channel_map; // channel_id and twitch_channel id
     std::unordered_set<size_t> ids; // add all streamer ids from the db and remove dupes
     std::vector<std::string> query_strings;
     std::vector<std::string> active_streams;
 
+    std::string bearer {fmt::format("Authorization: Bearer {0}", twitch_config.oauth)};
+    std::string client_id {fmt::format("Client-Id: {0}", twitch_config.id)};
     helix_header.push_back(bearer.c_str());
     helix_header.push_back(client_id.c_str());
 
@@ -99,6 +110,13 @@ void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& 
 
         if (response.find("status") != response.end()) {
             twitch::generateNewToken(twitch_config);
+
+            helix_header.clear();
+            bearer = fmt::format("Authorization: Bearer {0}", twitch_config.oauth);
+            client_id = fmt::format("Client-Id: {0}", twitch_config.id);
+            helix_header.push_back(bearer.c_str());
+            helix_header.push_back(client_id.c_str());
+
             response = json::parse(u::requests(fmt::format("https://api.twitch.tv/helix/streams?{0}", i).c_str(), helix_header));
         }
 

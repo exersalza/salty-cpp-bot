@@ -27,6 +27,7 @@
 
 
 int main(int argc, char *argv[]) {
+
     // Normal config shit
     cfg::Config config = cfg::Config("config.json");
     cfg::sql sql = config.getSqlConf();
@@ -81,16 +82,14 @@ int main(int argc, char *argv[]) {
     bot.on_ready([&bot, &argc, &argv, &conn, &sql, &config](const dpp::ready_t &event) {
         if (dpp::run_once<struct register_bot_commands>()) {
             if (argc == 2 && !strcmp(argv[1], "--init")) {
-                std::thread thr_presence([&bot, &conn, &config, &sql]() {
+                std::thread thr_presence([&bot]() {
                     bot.log(dpp::ll_info, "Presence warmup");
-                    twitch::init(config, conn, bot, sql);
                     sleep(90);
                     bot.log(dpp::ll_info, "Presence gonna start now.");
 
                     while (true) {
                         try {
                             bot.set_presence(dpp::presence(dpp::ps_online, dpp::activity_type::at_watching, "the development of me."));
-                            twitch::init(config, conn, bot, sql);
                             sleep(120);
                         } catch (std::exception &e) {
                             bot.log(dpp::ll_error, fmt::format("FUCK, somethin went wron {0}", e.what()));
@@ -103,6 +102,7 @@ int main(int argc, char *argv[]) {
                 // IT'S NOT MANUEL ANYMORE
                 createcmds(bot);
 
+                twitch::init(config, conn, bot, sql); // init the twitch integration.
                 ticket::init_ticket_events(bot, conn, config, sql);
                 admin::init_verify_events(bot, conn, sql);
             }

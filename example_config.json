@@ -1,10 +1,19 @@
+
+// config.json
 {
   "token": "",
   "dev_token": "",
-
   "db": "",
   "host": "",
   "user": "",
   "password": "",
   "em_color": "0xbc3440"
+}
+
+// second file named: twitch_config.json
+
+{
+    "twitch_client": "",
+    "twitch_secret": "",
+    "twitch_oauth": ""
 }

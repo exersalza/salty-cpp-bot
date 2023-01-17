@@ -21,6 +21,7 @@ cfg::Config::Config(std::string &&path) : path(path) {
     token = _data["token"];
     dev_token = _data["dev_token"];
     log_webhook = _data["webhook"];
+    twitch_path = "twitch_config.json";
 
     if (log_webhook.empty()) {
         std::cout << "WEBHOOK ID NOT SET, OMITTING WEBHOOK LOGING." << std::endl;
@@ -54,12 +55,10 @@ cfg::Config::Config(std::string &&path) : path(path) {
 
 [[nodiscard]] cfg::twitch cfg::Config::getTwitchConf() {
 
-    if (data["db"].empty()) {
-        std::fstream f(path);
-        json _data = json::parse(f);
+    std::fstream f(twitch_path);
+    json _data = json::parse(f);
 
-        this->data = _data;
-    }
+    this->data = _data;
 
     return {
         data["twitch_client"],

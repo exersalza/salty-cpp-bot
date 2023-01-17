@@ -20,6 +20,7 @@
 namespace twitch {
     void generateNewToken(cfg::twitch& twitch);
     void init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& bot, cfg::sql& sql);
+
 };
 
 
