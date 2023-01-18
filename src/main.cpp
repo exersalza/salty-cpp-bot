@@ -102,6 +102,7 @@ int main(int argc, char *argv[]) {
                 thr_presence.detach();
 
                 std::thread twitch_loop([&config, &conn, &bot, &sql]() {
+                    bot.log(dpp::ll_debug, "twitch loop started");
                     while (true) {
                         sleep(64);
                         twitch::init(config, conn, bot, sql); // init the twitch integration.
@@ -149,6 +150,10 @@ int main(int argc, char *argv[]) {
         // todo: use map for commands.
         if (interaction.get_command_name() == "ticket") {
             ticket::ticket_commands(bot, event, cmd_data, conn, config, sql);
+        }
+
+        if (interaction.get_command_name() == "twitch") {
+            twitch::twitch_commands(bot, event, cmd_data, config, conn, sql);
         }
 
         if (interaction.get_command_name() == "verify") {

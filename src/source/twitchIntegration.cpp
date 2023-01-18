@@ -11,6 +11,60 @@
 #include "../include/config.hpp"
 #include "../include/utils.hpp"
 
+void twitch::twitch_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
+                             const dpp::command_interaction &cmd_data, cfg::Config &config,
+                             mysqlpp::Connection &conn, cfg::sql &sql) {
+    event.thinking(true);
+    auto sc = cmd_data.options[0];
+    short c = 0;
+
+    if (sc.name == "add") {
+        std::string name = sc.get_value<std::string>(0);
+        size_t channel_id = sc.get_value<dpp::snowflake>(1);
+        std::string message;
+        std::vector<const char*> helix_header;
+        cfg::twitch twitch_config = config.getTwitchConf();
+        std::string bearer{fmt::format("Authorization: Bearer {0}", twitch_config.oauth)};
+        std::string client_id{fmt::format("Client-Id: {0}", twitch_config.id)};
+
+        helix_header.push_back(bearer.c_str());
+        helix_header.push_back(client_id.c_str());
+
+        if (sc.options.size() == 3) {
+            message = sc.get_value<std::string>(2);
+        }
+
+        json response = json::parse(u::requests(fmt::format("https://api.twitch.tv/helix/users?login={0}", name).c_str(),
+                                                helix_header));
+
+        if (response.contains("status")) {
+            event.edit_response("Can't do that right now, try again in a Minute. thx :)");
+            return;
+        }
+
+        json &streamer = response["data"][0];
+
+
+        ticket::connect(conn, sql);
+        mysqlpp::Query query = conn.query();
+        query << fmt::format("select id from salty_cpp_bot.twitch where server_id = {} and stream_id = {}",
+                             event.command.guild_id, streamer["id"]);
+        auto res = query.store();
+
+        std::cout << (std::find(res[0].begin(), res[0].end(), "id") != res[0].end()) << '\n';
+        if (res.size() != 0) {
+
+        }
+
+        conn.disconnect();
+    }
+
+    if (sc.name == "remove") {
+
+    }
+}
+
+
 void twitch::generateNewToken(cfg::twitch &twitch_config) {
     auto f = fmt::format("client_id={0}&client_secret={1}&grant_type=client_credentials",
                          twitch_config.id, twitch_config.secret);
@@ -39,7 +93,6 @@ void twitch::generateNewToken(cfg::twitch &twitch_config) {
     std::ofstream of("twitch_config.json");
     of << config;
     of.close();
-
 }
 
 void twitch::init(cfg::Config &config, mysqlpp::Connection &conn, dpp::cluster &bot, cfg::sql &sql) {

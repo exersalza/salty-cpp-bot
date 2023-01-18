@@ -150,49 +150,42 @@ inline std::map<std::string, cmds> commands{
                 "help",    {       "Shows the help page",                          dpp::p_send_messages}
         },
         {
-                "user",    {
-                                   "Show user specific stuff, when you don't provide a id, then yours will be used.",
-                                                                                   dpp::p_send_messages,
-                                   {
-                                           dpp::command_option(dpp::co_sub_command, "avatar",
-                                                               "Get the avatar from someone and the link to it.")
-                                                   .add_option(m_user),
+                "user",    {"Show user specific stuff, when you don't provide a id, then yours will be used.",
+                            dpp::p_send_messages, {
+                                   dpp::command_option(dpp::co_sub_command, "avatar", "Get the avatar from someone and the link to it.")
+                                       .add_option(m_user),
 
-                                           dpp::command_option(dpp::co_sub_command, "banner",
-                                                               "Get the banner from someone and the link to it.")
-                                                   .add_option(m_user),
+                                   dpp::command_option(dpp::co_sub_command, "banner", "Get the banner from someone and the link to it.")
+                                       .add_option(m_user),
 
-                                           dpp::command_option(dpp::co_sub_command, "info",
-                                                               "Get full information about a user.")
-                                                   .add_option(m_user),
-                                   }
-                           }
+                                   dpp::command_option(dpp::co_sub_command, "info", "Get full information about a user.")
+                                       .add_option(m_user),
+                           }}
         },
         {
-                "verify",  {
-                                   "Setup the verify system",
-                                                                                   dpp::p_administrator,
-                                   {
-                                           dpp::command_option(dpp::co_sub_command, "send", "Send the Verify message")
-                                                   .add_option(dpp::command_option(dpp::co_channel, "channel",
-                                                                                   "Give a channel for the message")),
+                "verify",  {"Setup the verify system", dpp::p_administrator, {
+                        dpp::command_option(dpp::co_sub_command, "send", "Send the Verify message")
+                            .add_option(dpp::command_option(dpp::co_channel, "channel", "Give a channel for the message")),
 
-                                           dpp::command_option(dpp::co_sub_command, "role",
-                                                               "Set the New Member role for the Verify system")
-                                                   .add_option(
-                                                           dpp::command_option(dpp::co_role, "role", "Set the Role.",
-                                                                               true))
-                                   }
-                           }
+                       dpp::command_option(dpp::co_sub_command, "role", "Set the New Member role for the Verify system")
+                           .add_option(dpp::command_option(dpp::co_role, "role", "Set the Role.", true))
+                }}
         },
         {
-                "uptime",  {       "Tells you the Uptime from the Bot.",           dpp::p_send_messages}
+                "uptime",  {"Tells you the Uptime from the Bot.", dpp::p_send_messages}
         },
         {
-                "credits", {       "Show you the credits to the bot and website.", dpp::p_send_messages}
+                "credits", {"Show you the credits to the bot and website.", dpp::p_send_messages}
         },
         {
-                "twitch",  {       "Configure your streamer stuff",                dpp::p_administrator}
+                "twitch",  {"Configure your streamer stuff", dpp::p_administrator, {
+                        dpp::command_option(dpp::co_sub_command, "add", "Adds a Streamer to the watchlist.")
+                            .add_option(dpp::command_option(dpp::co_string, "name", "Give the name for the Streamer to add.", true))
+                            .add_option(dpp::command_option(dpp::co_channel, "channel", "The channel where the live message should be displayed.", true))
+                            .add_option(dpp::command_option(dpp::co_string, "message", "Give a message to send with the Live message.", false)),
+                        dpp::command_option(dpp::co_sub_command, "remove", "Removed given streamer from the Watchlist.")
+                            .add_option(dpp::command_option(dpp::co_string, "name", "The name of the streamer to remove."))
+                }}
         }
 };
 
