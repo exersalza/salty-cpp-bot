@@ -58,12 +58,10 @@ cfg::Config::Config(std::string &&path) : path(path) {
     std::fstream f(twitch_path);
     json _data = json::parse(f);
 
-    this->data = _data;
-
     return {
-        data["twitch_client"],
-        data["twitch_secret"],
-        data["twitch_oauth"]
+        _data["twitch_client"],
+        _data["twitch_secret"],
+        _data["twitch_oauth"]
     };
 }
 
