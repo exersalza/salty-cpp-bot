@@ -46,13 +46,7 @@ void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& 
     cfg::twitch twitch_config = config.getTwitchConf();
     json twitch_content_map; // twitch channel info thingi
     // Twitch integration
-    std::fstream file("CACHE_twitch_content_map.json");
-
-    if (!file.fail())
-        twitch_content_map = json::parse(file);
-
-    file.close();
-
+    getTwitchCache(twitch_content_map);
 
     std::vector<const char *> helix_header;
     json twitch_channel_map; // channel_id and twitch_channel id
@@ -60,8 +54,8 @@ void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& 
     std::vector<std::string> query_strings;
     std::vector<std::string> active_streams;
 
-    std::string bearer {fmt::format("Authorization: Bearer {0}", twitch_config.oauth)};
-    std::string client_id {fmt::format("Client-Id: {0}", twitch_config.id)};
+    std::string bearer{fmt::format("Authorization: Bearer {0}", twitch_config.oauth)};
+    std::string client_id{fmt::format("Client-Id: {0}", twitch_config.id)};
     helix_header.push_back(bearer.c_str());
     helix_header.push_back(client_id.c_str());
 
@@ -76,12 +70,13 @@ void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& 
 
     twitch_channel_map.clear();
 
-    for (auto &i : res) {
-        if (!twitch_channel_map.contains((std::string)i["stream_id"]))
-            twitch_channel_map[(std::string)i["stream_id"]] = {};
+    for (auto &i: res) {
+        if (!twitch_channel_map.contains((std::string) i["stream_id"]))
+            twitch_channel_map[(std::string) i["stream_id"]] = {};
 
 
-        twitch_channel_map[(std::string)i["stream_id"]] += std::pair<size_t, std::string>((size_t)i["channel_id"], (std::string)i["message"]);
+        twitch_channel_map[(std::string) i["stream_id"]] += std::pair<size_t, std::string>((size_t) i["channel_id"],
+                                                                                           (std::string) i["message"]);
         ids.insert(i["stream_id"]);
     }
 
@@ -89,7 +84,7 @@ void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& 
     short counter = 0;
     std::stringstream query_str;
 
-    for (auto &i : ids) {
+    for (auto &i: ids) {
         if (counter >= 100) {
             query_str << "first=100";
             query_strings.push_back(query_str.str());
@@ -105,8 +100,9 @@ void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& 
 
 
     // https://dev.twitch.tv/docs/api/reference/#get-streams
-    for (auto &i : query_strings) {
-        json response = json::parse(u::requests(fmt::format("https://api.twitch.tv/helix/streams?{0}", i).c_str(), helix_header)); // {"error":"Unauthorized","status":401,"message":"Invalid OAuth token"}
+    for (auto &i: query_strings) {
+        json response = json::parse(u::requests(fmt::format("https://api.twitch.tv/helix/streams?{0}", i).c_str(),
+                                                helix_header)); // {"error":"Unauthorized","status":401,"message":"Invalid OAuth token"}
 
         if (response.find("status") != response.end()) {
             twitch::generateNewToken(twitch_config);
@@ -117,46 +113,48 @@ void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& 
             helix_header.push_back(bearer.c_str());
             helix_header.push_back(client_id.c_str());
 
-            response = json::parse(u::requests(fmt::format("https://api.twitch.tv/helix/streams?{0}", i).c_str(), helix_header));
+            response = json::parse(
+                    u::requests(fmt::format("https://api.twitch.tv/helix/streams?{0}", i).c_str(), helix_header));
         }
 
         json profile_pic = json::parse(u::requests(fmt::format("https://api.twitch.tv/helix/users?{0}",
-                                                               std::regex_replace(i, std::regex("user_"), "")).c_str(),
-                                                               helix_header));
+                                                               std::regex_replace(i, std::regex("user_"),
+                                                                                  "")).c_str(),
+                                                   helix_header));
 
         json &pp = profile_pic["data"];
         json pp_pics; // sounds maybe wrong, but I meant Profile-Pics-Pics
         json &data = response["data"];
 
-        for (auto &j : pp) {
-            pp_pics[(std::string)j["id"]] = j["profile_image_url"];
+        for (auto &j: pp) {
+            pp_pics[(std::string) j["id"]] = j["profile_image_url"];
         }
 
-        for (auto &j : data) {
-            active_streams.push_back((std::string)j["user_id"]);
+        for (auto &j: data) {
+            active_streams.push_back((std::string) j["user_id"]);
 
-            if (twitch_content_map.contains((std::string)j["user_id"]))
+            if (twitch_content_map.contains((std::string) j["user_id"]))
                 continue;
 
-            twitch_content_map[(std::string)j["user_id"]] = {
-                    {"user_name", j["user_name"]},
-                    {"title", j["title"]},
-                    {"game_name", j["game_name"]},
-                    {"thumbnail_url", j["thumbnail_url"]},
-                    {"viewer_count", j["viewer_count"]},
-                    {"lang", j["language"]},
-                    {"started_at", j["started_at"]},
-                    {"profile_image_url", pp_pics[(std::string)j["user_id"]]},
-                    {"send", false}
+            twitch_content_map[(std::string) j["user_id"]] = {
+                    {"user_name",         j["user_name"]},
+                    {"title",             j["title"]},
+                    {"game_name",         j["game_name"]},
+                    {"thumbnail_url",     j["thumbnail_url"]},
+                    {"viewer_count",      j["viewer_count"]},
+                    {"lang",              j["language"]},
+                    {"started_at",        j["started_at"]},
+                    {"profile_image_url", pp_pics[(std::string) j["user_id"]]},
+                    {"send",              false}
             };
         }
 
         // yeet offline channels
 
         auto iter = twitch_content_map.begin();
-        for(; iter != twitch_content_map.end(); ) {
+        for (; iter != twitch_content_map.end();) {
             if (std::find(active_streams.begin(), active_streams.end(), iter.key()) == active_streams.end()
-                    || iter.value().is_null()) {
+                || iter.value().is_null()) {
 
                 iter = twitch_content_map.erase(iter);
             } else {
@@ -165,11 +163,11 @@ void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& 
         }
     }
 
-    for (auto &i : twitch_channel_map.items()) {
+    for (auto &i: twitch_channel_map.items()) {
         if (!twitch_content_map.contains(i.key()) || twitch_content_map[i.key()]["send"])
             continue;
 
-        auto& streamer = twitch_content_map[i.key()];
+        auto &streamer = twitch_content_map[i.key()];
         dpp::embed em;
 
         auto name = streamer["user_name"];
@@ -177,7 +175,7 @@ void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& 
         std::stringstream m;
         m << viewer_count;
 
-        struct tm tm {};
+        struct tm tm{};
         std::string ts = streamer["started_at"];
 
         strptime(ts.c_str(), "%Y-%m-%dT%H:%M:%SZ", &tm);
@@ -185,22 +183,23 @@ void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& 
         em.set_author(fmt::format("{0} is now Live!", name),
                       fmt::format("https://twitch.tv/{0}", name),
                       streamer["profile_image_url"])
-          .set_title(streamer["title"])
-          .set_url(fmt::format("https://twitch.tv/{0}", name))
-          .set_color(0x6441a5)
-          .add_field("Game:", (std::string)streamer["game_name"], true)
-          .add_field("Viewer count:", m.str(), true)
-          .set_image(fmt::format("https://static-cdn.jtvnw.net/previews-ttv/live_user_{0}-{width}x{height}.jpg",
-                                 u::stol(name), fmt::arg("width", 1920), fmt::arg("height", 1080)))
-          .set_footer(fmt::format("Kenexar.eu - Lang: {}", streamer["lang"]), bot.me.get_avatar_url())
-          .set_timestamp(mktime(&tm));
+                .set_title(streamer["title"])
+                .set_url(fmt::format("https://twitch.tv/{0}", name))
+                .set_color(0x6441a5)
+                .add_field("Game:", (std::string) streamer["game_name"], true)
+                .add_field("Viewer count:", m.str(), true)
+                .set_image(
+                        fmt::format("https://static-cdn.jtvnw.net/previews-ttv/live_user_{0}-{width}x{height}.jpg",
+                                    u::stol(name), fmt::arg("width", 1920), fmt::arg("height", 1080)))
+                .set_footer(fmt::format("Kenexar.eu - Lang: {}", streamer["lang"]), bot.me.get_avatar_url())
+                .set_timestamp(mktime(&tm));
 
-        for (auto &j : twitch_channel_map[i.key()]) {
+        for (auto &j: twitch_channel_map[i.key()]) {
             dpp::message msg;
             if (j[1] != "NULL") {
                 msg = {(size_t) j[0], (std::string) j[1]};
 
-                if (((std::string)j[1]).find("@everyone") != std::string::npos) {
+                if (((std::string) j[1]).find("@everyone") != std::string::npos) {
                     msg.set_allowed_mentions(false, false, true, false, {}, {});
                 }
                 msg.add_embed(em);
@@ -209,18 +208,28 @@ void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& 
             }
 
             msg.add_component(dpp::component().add_component(dpp::component()
-                                                .set_type(dpp::cot_button)
-                                                .set_label("Watch it")
-                                                .set_style(dpp::cos_link)
-                                                .set_url(fmt::format("https://twitch.tv/{}", name))));
+                                                                     .set_type(dpp::cot_button)
+                                                                     .set_label("Watch it")
+                                                                     .set_style(dpp::cos_link)
+                                                                     .set_url(fmt::format("https://twitch.tv/{}",
+                                                                                          name))));
             bot.message_create(msg);
         }
-//        twitch_content_map[i.key()]["send"] = true;
+        twitch_content_map[i.key()]["send"] = true;
     }
 
     // create cache
     std::ofstream TMP_twitch_content_map("CACHE_twitch_content_map.json");
     TMP_twitch_content_map << twitch_content_map;
     TMP_twitch_content_map.close();
+}
+
+void twitch::getTwitchCache(json &twitch_content_map) {
+    std::fstream file("CACHE_twitch_content_map.json");
+
+    if (!file.fail())
+        twitch_content_map = json::parse(file);
+
+    file.close();
 }
 

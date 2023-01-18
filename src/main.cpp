@@ -82,6 +82,7 @@ int main(int argc, char *argv[]) {
     bot.on_ready([&bot, &argc, &argv, &conn, &sql, &config](const dpp::ready_t &event) {
         if (dpp::run_once<struct register_bot_commands>()) {
             if (argc == 2 && !strcmp(argv[1], "--init")) {
+                --argc;
                 std::thread thr_presence([&bot]() {
                     bot.log(dpp::ll_info, "Presence warmup");
                     sleep(90);
@@ -97,12 +98,18 @@ int main(int argc, char *argv[]) {
                     }
                 });
                 thr_presence.detach();
-                --argc;
+
+                std::thread twitch_loop([&config, &conn, &bot, &sql]() {
+                    while (true) {
+                        sleep(64);
+                        twitch::init(config, conn, bot, sql); // init the twitch integration.
+                    }
+                });
+                twitch_loop.detach();
 
                 // IT'S NOT MANUEL ANYMORE
                 createcmds(bot);
 
-                twitch::init(config, conn, bot, sql); // init the twitch integration.
                 ticket::init_ticket_events(bot, conn, config, sql);
                 admin::init_verify_events(bot, conn, sql);
             }
