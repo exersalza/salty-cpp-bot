@@ -39,15 +39,18 @@ class g {
     private:
         std::vector<std::string> cards;
         int card_count;
+
         int updateCardCount();
     };
 
     class BJ {
     public:
         BJ();
+
         explicit BJ(std::vector<BjPlayer> &player_list);
 
         int player_count;
+
         void dealCards();
 
     private:

@@ -11,16 +11,16 @@
 #include "../include/config.hpp"
 #include "../include/utils.hpp"
 
-void twitch::generateNewToken(cfg::twitch& twitch_config) {
+void twitch::generateNewToken(cfg::twitch &twitch_config) {
     auto f = fmt::format("client_id={0}&client_secret={1}&grant_type=client_credentials",
-                                twitch_config.id, twitch_config.secret);
+                         twitch_config.id, twitch_config.secret);
 
     auto res = u::post("https://id.twitch.tv/oauth2/token", f.c_str());
 
     // define parser callback, stole it from https://json.nlohmann.me/api/basic_json/parse/#examples
-    json::parser_callback_t cb = [](int depth, json::parse_event_t event, json& parsed) {
+    json::parser_callback_t cb = [](int depth, json::parse_event_t event, json &parsed) {
         if (event == json::parse_event_t::key &&
-                (parsed == json("expires_in") | parsed == json("token_type"))) {
+            (parsed == json("expires_in") | parsed == json("token_type"))) {
             return false;
         }
         return true;
@@ -42,7 +42,7 @@ void twitch::generateNewToken(cfg::twitch& twitch_config) {
 
 }
 
-void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& bot, cfg::sql& sql) {
+void twitch::init(cfg::Config &config, mysqlpp::Connection &conn, dpp::cluster &bot, cfg::sql &sql) {
     cfg::twitch twitch_config = config.getTwitchConf();
     json twitch_content_map; // twitch channel info thingi
     // Twitch integration
@@ -118,9 +118,8 @@ void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& 
         }
 
         json profile_pic = json::parse(u::requests(fmt::format("https://api.twitch.tv/helix/users?{0}",
-                                                               std::regex_replace(i, std::regex("user_"),
-                                                                                  "")).c_str(),
-                                                   helix_header));
+                                                               std::regex_replace(i, std::regex("user_"), "")).c_str(),
+                                                                                                helix_header));
 
         json &pp = profile_pic["data"];
         json pp_pics; // sounds maybe wrong, but I meant Profile-Pics-Pics

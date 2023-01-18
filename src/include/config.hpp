@@ -15,10 +15,10 @@ using json = nlohmann::json;
 
 namespace cfg {
     struct sql {
-        const char* user;
-        const char* password;
-        const char* db;
-        const char* host;
+        const char *user;
+        const char *password;
+        const char *db;
+        const char *host;
     };
 
     struct twitch {
@@ -34,11 +34,13 @@ namespace cfg {
         explicit Config(std::string &&path);
 
         [[nodiscard]] const std::string &getToken() const;
-        [[nodiscard]] const std::string &getToken(const std::string& token_type) const;
+
+        [[nodiscard]] const std::string &getToken(const std::string &token_type) const;
 
         // SQL - Set a to do tag here, when you insert real data. (I think only usable in Clion but not sure.)
 
         [[nodiscard]] sql getSqlConf();
+
         [[nodiscard]] twitch getTwitchConf();
 
         int b_color = 0xbc3440;

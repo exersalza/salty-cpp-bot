@@ -36,7 +36,7 @@ cfg::Config::Config(std::string &&path) : path(path) {
 }
 
 [[nodiscard]] cfg::sql cfg::Config::getSqlConf() {
-    cfg::sql sql {};
+    cfg::sql sql{};
 
     if (data["db"].empty()) {
         std::fstream f(path);
@@ -45,10 +45,10 @@ cfg::Config::Config(std::string &&path) : path(path) {
         this->data = _data;
     }
 
-    sql.db = data["db"].get_ref<const std::string&>().c_str();
-    sql.host = data["host"].get_ref<const std::string&>().c_str();
-    sql.user = data["user"].get_ref<const std::string&>().c_str();
-    sql.password = data["password"].get_ref<const std::string&>().c_str();
+    sql.db = data["db"].get_ref<const std::string &>().c_str();
+    sql.host = data["host"].get_ref<const std::string &>().c_str();
+    sql.user = data["user"].get_ref<const std::string &>().c_str();
+    sql.password = data["password"].get_ref<const std::string &>().c_str();
 
     return sql;
 }
@@ -59,9 +59,9 @@ cfg::Config::Config(std::string &&path) : path(path) {
     json _data = json::parse(f);
 
     return {
-        _data["twitch_client"],
-        _data["twitch_secret"],
-        _data["twitch_oauth"]
+            _data["twitch_client"],
+            _data["twitch_secret"],
+            _data["twitch_oauth"]
     };
 }
 
@@ -69,7 +69,7 @@ const std::string &cfg::Config::getToken() const {
     return token;
 }
 
-const std::string &cfg::Config::getToken(const std::string& token_type) const {
+const std::string &cfg::Config::getToken(const std::string &token_type) const {
     if (token_type == "dev")
         return dev_token;
     return token;

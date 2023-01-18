@@ -13,11 +13,11 @@
 
 [[maybe_unused]] std::string u::stol(const std::string &name) {
     std::stringstream ret;
-    for (auto c : name) {
+    for (auto c: name) {
         if (c != ' ')
             c = tolower(c);
 
-        ret << (char)c;
+        ret << (char) c;
     }
 
     return ret.str();
@@ -25,11 +25,11 @@
 
 [[maybe_unused]] std::string u::stou(const std::string &name) {
     std::stringstream ret;
-    for (auto c : name) {
+    for (auto c: name) {
         if (c != ' ')
             c = toupper(c);
 
-        ret << (char)c;
+        ret << (char) c;
     }
 
     return ret.str();
@@ -86,7 +86,7 @@
 }
 
 [[maybe_unused]] bool u::file_exists(const std::string &name) {
-    if (FILE *file = fopen(name.c_str(), "r")) {
+    if (FILE * file = fopen(name.c_str(), "r")) {
         fclose(file);
         return true;
     } else {
@@ -126,11 +126,11 @@ void u::presence_update(dpp::cluster &bot) {
 }
 
 static size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
-    ((std::string*)userp)->append((char*)contents, size * nmemb);
+    ((std::string *) userp)->append((char *) contents, size * nmemb);
     return size * nmemb;
 }
 
-std::string u::requests(const char* url) {
+std::string u::requests(const char *url) {
     CURL *curl;
     CURLcode cres;
     std::string readBuffer;
@@ -149,7 +149,7 @@ std::string u::requests(const char* url) {
     return readBuffer;
 }
 
-std::string u::requests(const char* url, std::vector<const char*>& header) {
+std::string u::requests(const char *url, std::vector<const char *> &header) {
     CURL *curl;
     CURLcode cres;
     std::string readBuffer;
@@ -157,9 +157,9 @@ std::string u::requests(const char* url, std::vector<const char*>& header) {
     curl = curl_easy_init();
 
     if (curl) {
-        struct curl_slist* chunk = nullptr;
+        struct curl_slist *chunk = nullptr;
 
-        for (auto i : header) {
+        for (auto i: header) {
             chunk = curl_slist_append(chunk, i);
         }
 
@@ -176,7 +176,7 @@ std::string u::requests(const char* url, std::vector<const char*>& header) {
     return readBuffer;
 }
 
-std::string u::post(const char* url, const char* post_opt) {
+std::string u::post(const char *url, const char *post_opt) {
     CURL *curl;
     CURLcode cres;
     std::string read_buffer;
@@ -190,7 +190,7 @@ std::string u::post(const char* url, const char* post_opt) {
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &read_buffer);
 
         cres = curl_easy_perform(curl);
-        if(cres != CURLE_OK) {
+        if (cres != CURLE_OK) {
             std::cout << "Cant do request " << curl_easy_strerror(cres);
         }
         curl_easy_cleanup(curl);
@@ -199,7 +199,7 @@ std::string u::post(const char* url, const char* post_opt) {
     return read_buffer;
 }
 
-[[maybe_unused]] int u::stoc(const std::string &src, char* dest) {
+[[maybe_unused]] int u::stoc(const std::string &src, char *dest) {
     try {
         for (int i = 0; i < src.length(); ++i)
             dest[i] = src[i];

@@ -50,10 +50,10 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
             mysqlpp::Query query = c.query();
             query << fmt::format("SELECT ticket.category_id, ticket.count, ticket.notify_channel, ticket.enabled, "
                                  "ticket.max_ticket FROM salty_cpp_bot.ticket WHERE ticket.server_id = '{0}';"
-              "UPDATE salty_cpp_bot.ticket SET count=count + 1 WHERE ticket.server_id = {0};"
-              "select count(*) from salty_cpp_bot.cur_tickets where server_id = {0} and user_id = {1};"
-              "select ticket_access_roles.role_id from salty_cpp_bot.ticket_access_roles where ticket_access_roles.server_id = {0};",
-                    event_cmd.guild_id, event_cmd.usr.id);
+                                 "UPDATE salty_cpp_bot.ticket SET count=count + 1 WHERE ticket.server_id = {0};"
+                                 "select count(*) from salty_cpp_bot.cur_tickets where server_id = {0} and user_id = {1};"
+                                 "select ticket_access_roles.role_id from salty_cpp_bot.ticket_access_roles where ticket_access_roles.server_id = {0};",
+                                 event_cmd.guild_id, event_cmd.usr.id);
 
             // Do the query stuff here, so I can drop the db connection afterwards.
             mysqlpp::StoreQueryResult res = query.store();
@@ -68,7 +68,8 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
 
             // system dribble
             if (res.empty() || !res[0]["enabled"]) {
-                event.edit_original_response(dpp::message("Ticket's are not enabled, contact an Moderator when you want to create a Ticket."));
+                event.edit_original_response(dpp::message(
+                        "Ticket's are not enabled, contact an Moderator when you want to create a Ticket."));
                 return;
             }
 
@@ -82,7 +83,8 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
 
             if (max_ticket_count) {
                 if (max_ticket_count < usr_cur_ticket) {
-                    event.edit_original_response(dpp::message("You have already to many tickets open, please close one first to open another one."));
+                    event.edit_original_response(dpp::message(
+                            "You have already to many tickets open, please close one first to open another one."));
                     return;
                 }
             }
@@ -103,11 +105,12 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
                     .set_parent_id(category_id);
 
             channel.add_permission_overwrite(event_cmd.usr.id, dpp::overwrite_type::ot_member,
-                                                dpp::permissions::p_send_messages |
-                                                dpp::permissions::p_view_channel, 0)
-                .add_permission_overwrite(guild.id, dpp::overwrite_type::ot_role, 0, dpp::permissions::p_view_channel);
+                                             dpp::permissions::p_send_messages |
+                                             dpp::permissions::p_view_channel, 0)
+                    .add_permission_overwrite(guild.id, dpp::overwrite_type::ot_role, 0,
+                                              dpp::permissions::p_view_channel);
 
-            for (size_t role : mod_roles) {
+            for (size_t role: mod_roles) {
                 channel.add_permission_overwrite(role,
                                                  dpp::overwrite_type::ot_role,
                                                  dpp::permissions::p_view_channel, 0);
@@ -137,37 +140,40 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
 
 
                 em.set_title(new_ticket.name)
-                  .set_color(0xbc3440)
-                  .set_description(fmt::format("{0} Welcome to your ticket, a Moderator will be there shortly.", event.command.usr.get_mention()))
-                  .set_timestamp(time(nullptr));
+                        .set_color(0xbc3440)
+                        .set_description(fmt::format("{0} Welcome to your ticket, a Moderator will be there shortly.",
+                                                     event.command.usr.get_mention()))
+                        .set_timestamp(time(nullptr));
 
                 dpp::message msg(new_ticket.id, em);
                 msg.add_component(dpp::component().add_component(
-                                        dpp::component()
-                                                .set_type(dpp::cot_button)
-                                                .set_id("ticket_close")
-                                                .set_label("Close ticket")
-                                                .set_emoji("🔒")
-                                                .set_style(dpp::cos_danger)));
+                        dpp::component()
+                                .set_type(dpp::cot_button)
+                                .set_id("ticket_close")
+                                .set_label("Close ticket")
+                                .set_emoji("🔒")
+                                .set_style(dpp::cos_danger)));
 
                 bot.message_create(msg);
 
                 // notify mods when id is provided
                 if (notify_id > 0) {
                     dpp::embed e;
-                    e.set_title(fmt::format("{0} got created by {1}", new_ticket.name, event.command.usr.format_username()))
-                     .set_description(fmt::format("Claimed by: {0}\nTicket: {1}", "None", new_ticket.get_mention()))
-                     .set_timestamp(time(nullptr))
-                     .set_footer(fmt::format("{0}", new_ticket.id), bot.me.get_avatar_url())
-                     .set_color(0xbc3440);
+                    e.set_title(fmt::format("{0} got created by {1}", new_ticket.name,
+                                            event.command.usr.format_username()))
+                            .set_description(
+                                    fmt::format("Claimed by: {0}\nTicket: {1}", "None", new_ticket.get_mention()))
+                            .set_timestamp(time(nullptr))
+                            .set_footer(fmt::format("{0}", new_ticket.id), bot.me.get_avatar_url())
+                            .set_color(0xbc3440);
 
                     dpp::message mod_msg(notify_id, e);
 
                     mod_msg.add_component(dpp::component().add_component(dpp::component()
-                                                            .set_type(dpp::cot_button)
-                                                            .set_label("Claim")
-                                                            .set_id("ticket_claim")
-                                                            .set_style(dpp::cos_success)));
+                                                                                 .set_type(dpp::cot_button)
+                                                                                 .set_label("Claim")
+                                                                                 .set_id("ticket_claim")
+                                                                                 .set_style(dpp::cos_success)));
                     try {
                         bot.message_create(mod_msg);
                     } catch (std::exception &e) {
@@ -198,23 +204,23 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
             dpp::embed em;
 
             em.set_title("Are you sure that you want to close the Ticket?")
-              .set_color(0xbc3440);
+                    .set_color(0xbc3440);
 
             dpp::message you_sure_msg(dpp::message(event_cmd.channel_id, em)
-                                        .add_component(dpp::component()
-                                            .add_component(
-                                                dpp::component()
-                                                    .set_label("Close it")
-                                                    .set_type(dpp::cot_button)
-                                                    .set_style(dpp::cos_danger)
-                                                    .set_id("ticket_sure"))
+                                              .add_component(dpp::component()
+                                                                     .add_component(
+                                                                             dpp::component()
+                                                                                     .set_label("Close it")
+                                                                                     .set_type(dpp::cot_button)
+                                                                                     .set_style(dpp::cos_danger)
+                                                                                     .set_id("ticket_sure"))
 
-                                            .add_component(
-                                                dpp::component()
-                                                    .set_label("Nah, let it open")
-                                                    .set_type(dpp::cot_button)
-                                                    .set_style(dpp::cos_secondary)
-                                                    .set_id("ticket_sure_nah"))));
+                                                                     .add_component(
+                                                                             dpp::component()
+                                                                                     .set_label("Nah, let it open")
+                                                                                     .set_type(dpp::cot_button)
+                                                                                     .set_style(dpp::cos_secondary)
+                                                                                     .set_id("ticket_sure_nah"))));
 
             event.reply(you_sure_msg);
             return;
@@ -249,7 +255,8 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
             u::kill_query(query);
             c.disconnect();
 
-            bot.channel_delete_permission(channel, user_id, [&message_id, &channel_id, &bot, &config, &event](const dpp::confirmation_callback_t &confm) {
+            bot.channel_delete_permission(channel, user_id, [&message_id, &channel_id, &bot, &config, &event](
+                    const dpp::confirmation_callback_t &confm) {
                 if (confm.is_error()) {
                     ticket::confm_error(bot, event, confm);
                 }
@@ -259,26 +266,26 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
                 bot.message_delete(message_id, channel_id);
 
                 em.set_title("Admin Controls")
-                  .set_description("Here you can do basic admin stuff.")
-                  .set_color(config.b_color)
-                  .set_footer("Kenexar.eu", bot.me.get_avatar_url())
-                  .set_timestamp(time(nullptr));
+                        .set_description("Here you can do basic admin stuff.")
+                        .set_color(config.b_color)
+                        .set_footer("Kenexar.eu", bot.me.get_avatar_url())
+                        .set_timestamp(time(nullptr));
 
                 bot.message_create(dpp::message(channel_id, em).add_component(
-                                        dpp::component().add_component(
+                        dpp::component().add_component(
                                         dpp::component()
-                                            .set_type(dpp::cot_button)
-                                            .set_id("ticket_delete")
-                                            .set_emoji("🗑️")
-                                            .set_style(dpp::cos_danger)
-                                            .set_label("Delete ticket"))
-                                        .add_component(
+                                                .set_type(dpp::cot_button)
+                                                .set_id("ticket_delete")
+                                                .set_emoji("🗑️")
+                                                .set_style(dpp::cos_danger)
+                                                .set_label("Delete ticket"))
+                                .add_component(
                                         dpp::component()
-                                            .set_label("Reopen ticket")
-                                            .set_id("ticket_reopen")
-                                            .set_emoji("🔓")
-                                            .set_type(dpp::cot_button)
-                                            .set_style(dpp::cos_secondary))));
+                                                .set_label("Reopen ticket")
+                                                .set_id("ticket_reopen")
+                                                .set_emoji("🔓")
+                                                .set_type(dpp::cot_button)
+                                                .set_style(dpp::cos_secondary))));
 
             });
             return;
@@ -293,7 +300,7 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
 
             query << fmt::format(
                     "select user_id from salty_cpp_bot.cur_tickets where server_id = {0} and ticket_id = {1};",
-                        event_cmd.guild_id, event_cmd.channel_id);
+                    event_cmd.guild_id, event_cmd.channel_id);
 
             mysqlpp::StoreQueryResult res = query.store();
             size_t user_id = res[0]["user_id"];
@@ -313,7 +320,7 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
                 try {
                     event.edit_original_response(dpp::message("Can't reopen ticket, try again in a few minutes"));
 
-                // prevent edge case where the mod removes the channel before it can be re-opened
+                    // prevent edge case where the mod removes the channel before it can be re-opened
                 } catch (std::exception &f) { return; }
             }
 
@@ -345,10 +352,11 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
 
         mysqlpp::Query query = c.query();
 
-        query << fmt::format("if exists(select * from salty_cpp_bot.cur_tickets where ticket_id = {0} and server_id = {1}) then "
-                             "delete from salty_cpp_bot.cur_tickets where ticket_id = {0} and server_id = {1}; "
-                             "end if;",
-                             event.deleted->id, event.deleted->guild_id);
+        query << fmt::format(
+                "if exists(select * from salty_cpp_bot.cur_tickets where ticket_id = {0} and server_id = {1}) then "
+                "delete from salty_cpp_bot.cur_tickets where ticket_id = {0} and server_id = {1}; "
+                "end if;",
+                event.deleted->id, event.deleted->guild_id);
 
         query.execute();
         c.disconnect();
@@ -390,9 +398,9 @@ void ticket::ticket_commands(dpp::cluster &bot,
 
         {
             query << fmt::format("if not exists(select * from ticket where server_id='{0}') then"
-                                    " insert into ticket (server_id) values ('{0}');"
+                                 " insert into ticket (server_id) values ('{0}');"
                                  "else"
-                                    " update ticket set ticket.enabled = 1 where server_id = {0}; "
+                                 " update ticket set ticket.enabled = 1 where server_id = {0}; "
                                  "end if; ", event.command.guild_id);
 
             query.execute();
@@ -409,10 +417,10 @@ void ticket::ticket_commands(dpp::cluster &bot,
 
 
         em.set_color(0xbc3440)
-          .set_title(title)
-          .set_description("Create a ticket with 📝")
-          .set_footer("Kenexar.eu", bot.me.get_avatar_url())
-          .set_timestamp(time(nullptr));
+                .set_title(title)
+                .set_description("Create a ticket with 📝")
+                .set_footer("Kenexar.eu", bot.me.get_avatar_url())
+                .set_timestamp(time(nullptr));
 
         try {
             if (!sc.options.empty()) {
@@ -448,33 +456,37 @@ void ticket::ticket_commands(dpp::cluster &bot,
             if (!sub.options.empty())
                 category_id = sub.get_value<dpp::snowflake>(0);
 
-            bot.channels_get(event.command.guild_id, [&bot, &c, event, category_id, &sql](const dpp::confirmation_callback_t &confm) {
-                if (confm.is_error()) {
-                    ticket::confm_error(bot, event, confm);
-                    return;
-                }
+            bot.channels_get(event.command.guild_id,
+                             [&bot, &c, event, category_id, &sql](const dpp::confirmation_callback_t &confm) {
+                                 if (confm.is_error()) {
+                                     ticket::confm_error(bot, event, confm);
+                                     return;
+                                 }
 
-                auto t_channel = confm.get<dpp::channel_map>()[category_id];
-                if (!t_channel.is_category()) {
-                    event.edit_original_response(fmt::format("<#{0}> is not a Category.", category_id));
-                    return;
-                }
+                                 auto t_channel = confm.get<dpp::channel_map>()[category_id];
+                                 if (!t_channel.is_category()) {
+                                     event.edit_original_response(
+                                             fmt::format("<#{0}> is not a Category.", category_id));
+                                     return;
+                                 }
 
-                connect(c, sql);
-                mysqlpp::Query query = c.query();
+                                 connect(c, sql);
+                                 mysqlpp::Query query = c.query();
 
-                query << fmt::format("if exists(select * from salty_cpp_bot.ticket where server_id = {0}) then"
-                                     " update salty_cpp_bot.ticket set category_id = {1} where server_id = {0}; "
-                                     "else"
-                                     " insert into salty_cpp_bot.ticket (server_id, category_id) values ({0}, {1}); "
-                                     "end if;",
-                                     event.command.guild_id, category_id);
+                                 query << fmt::format(
+                                         "if exists(select * from salty_cpp_bot.ticket where server_id = {0}) then"
+                                         " update salty_cpp_bot.ticket set category_id = {1} where server_id = {0}; "
+                                         "else"
+                                         " insert into salty_cpp_bot.ticket (server_id, category_id) values ({0}, {1}); "
+                                         "end if;",
+                                         event.command.guild_id, category_id);
 
-                query.execute();
-                c.disconnect();
+                                 query.execute();
+                                 c.disconnect();
 
-                event.edit_original_response(fmt::format("<#{0}> was set as new Category.", category_id));
-            });
+                                 event.edit_original_response(
+                                         fmt::format("<#{0}> was set as new Category.", category_id));
+                             });
         }
 
         if (sub.name.find("roles") != std::string::npos) {
@@ -486,13 +498,13 @@ void ticket::ticket_commands(dpp::cluster &bot,
                 connect(c, sql);
                 mysqlpp::Query query = c.query();
 
-                for (auto& i : sub.options) {
+                for (auto &i: sub.options) {
                     size_t value = sub.get_value<dpp::snowflake>(count);
 
                     query << fmt::format(
-                        "if not exists(select * from ticket_access_roles where role_id='{1}') then"
+                            "if not exists(select * from ticket_access_roles where role_id='{1}') then"
                             " insert into ticket_access_roles (server_id, role_id) values ('{0}', '{1}');"
-                        "end if; ", event.command.guild_id, value);
+                            "end if; ", event.command.guild_id, value);
 
                     output += fmt::format("<@&{0}> ", value);
                     ++count;
@@ -512,32 +524,36 @@ void ticket::ticket_commands(dpp::cluster &bot,
             if (!sub.options.empty())
                 channel_id = sub.get_value<dpp::snowflake>(0);
 
-            bot.channels_get(event.command.guild_id, [&bot, &c, event, channel_id, &sql](const dpp::confirmation_callback_t &confm) {
-                if (confm.is_error()) {
-                    ticket::confm_error(bot, event, confm);
-                    return;
-                }
+            bot.channels_get(event.command.guild_id,
+                             [&bot, &c, event, channel_id, &sql](const dpp::confirmation_callback_t &confm) {
+                                 if (confm.is_error()) {
+                                     ticket::confm_error(bot, event, confm);
+                                     return;
+                                 }
 
-                auto t_channel = confm.get<dpp::channel_map>()[channel_id];
-                if (!t_channel.is_text_channel()) {
-                    event.edit_original_response(fmt::format("<#{0}> is not a Text channel.", channel_id));
-                    return;
-                }
+                                 auto t_channel = confm.get<dpp::channel_map>()[channel_id];
+                                 if (!t_channel.is_text_channel()) {
+                                     event.edit_original_response(
+                                             fmt::format("<#{0}> is not a Text channel.", channel_id));
+                                     return;
+                                 }
 
-                connect(c, sql);
-                mysqlpp::Query query = c.query();
+                                 connect(c, sql);
+                                 mysqlpp::Query query = c.query();
 
-                query << fmt::format("if exists(select * from salty_cpp_bot.ticket where server_id = {0}) then"
-                                     " update salty_cpp_bot.ticket set notify_channel = {1} where server_id = {0}; "
-                                     "else"
-                                     " insert into salty_cpp_bot.ticket (server_id, notify_channel) values ({0}, {1}); "
-                                     "end if;",
-                                     event.command.guild_id, channel_id);
+                                 query << fmt::format(
+                                         "if exists(select * from salty_cpp_bot.ticket where server_id = {0}) then"
+                                         " update salty_cpp_bot.ticket set notify_channel = {1} where server_id = {0}; "
+                                         "else"
+                                         " insert into salty_cpp_bot.ticket (server_id, notify_channel) values ({0}, {1}); "
+                                         "end if;",
+                                         event.command.guild_id, channel_id);
 
-                query.execute();
-                c.disconnect();
-                event.edit_original_response(fmt::format("<#{0}> was set as new Notify channel.", channel_id));
-            });
+                                 query.execute();
+                                 c.disconnect();
+                                 event.edit_original_response(
+                                         fmt::format("<#{0}> was set as new Notify channel.", channel_id));
+                             });
         }
 
         if (sub.name.find("maxticketcount") != std::string::npos) {
@@ -550,7 +566,8 @@ void ticket::ticket_commands(dpp::cluster &bot,
 
             if (count > INT_MAX) {
                 event.edit_original_response(dpp::message(event.command.channel_id,
-                                         fmt::format("Max Ticket count can't be higher then {0}", INT_MAX)).set_flags(64)); // 64 = dpp::m_ephemeral
+                                                          fmt::format("Max Ticket count can't be higher then {0}",
+                                                                      INT_MAX)).set_flags(64)); // 64 = dpp::m_ephemeral
                 return;
             }
 
@@ -592,7 +609,8 @@ void ticket::ticket_commands(dpp::cluster &bot,
 
             connect(c, sql);
             mysqlpp::Query query = c.query();
-            query << fmt::format("update salty_cpp_bot.ticket set {0} = 0 where server_id = {1}", table_name, event.command.guild_id);
+            query << fmt::format("update salty_cpp_bot.ticket set {0} = 0 where server_id = {1}", table_name,
+                                 event.command.guild_id);
 
             query.execute();
             c.disconnect();
@@ -605,15 +623,15 @@ void ticket::ticket_commands(dpp::cluster &bot,
 
             output += "Removed: ";
 
-            if (!sub.options.empty()){
+            if (!sub.options.empty()) {
                 connect(c, sql);
                 mysqlpp::Query query = c.query();
 
-                for (auto& i : sub.options) {
+                for (auto &i: sub.options) {
                     size_t value = sub.get_value<dpp::snowflake>(count);
 
                     query << fmt::format(
-                        "delete from salty_cpp_bot.ticket_access_roles where server_id = {0} and role_id = {1}; ",
+                            "delete from salty_cpp_bot.ticket_access_roles where server_id = {0} and role_id = {1}; ",
                             event.command.guild_id, value);
 
                     output += fmt::format("<@&{0}> ", value);
@@ -631,10 +649,10 @@ void ticket::ticket_commands(dpp::cluster &bot,
     if (sc.name == "config") {
         //TODO: send empty role when no is given, otherwise error
         em.set_title("Ticket System configuration")
-          .set_description(fmt::format("Config for {0}", event.command.get_guild().name))
-          .set_color(conf.b_color)
-          .set_footer("Kenexar.eu", bot.me.get_avatar_url())
-          .set_timestamp(time(nullptr));
+                .set_description(fmt::format("Config for {0}", event.command.get_guild().name))
+                .set_color(conf.b_color)
+                .set_footer("Kenexar.eu", bot.me.get_avatar_url())
+                .set_timestamp(time(nullptr));
 
         connect(c, sql);
         mysqlpp::Query query = c.query();
@@ -676,7 +694,7 @@ void ticket::ticket_commands(dpp::cluster &bot,
         em.add_field("Max Ticket for users", fmt::format("{0}", max_ticket_out.str()), true);
         em.add_field("Category for new ticket.", fmt::format("<#{0}>", category_id), true);
         em.add_field("Notify channel for new tickets.", fmt::format("<#{0}>", notify_channel), true);
-        em.add_field("Created tickets on this server",  fmt::format("{0}", ticket_count), true);
+        em.add_field("Created tickets on this server", fmt::format("{0}", ticket_count), true);
 
         em.add_field("Support Roles:", ((roles.str()).length() != 0) ? roles.str() : "No Support roles given", false);
         event.reply(dpp::message(event.command.channel_id, em));

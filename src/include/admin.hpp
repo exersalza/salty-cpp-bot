@@ -17,6 +17,7 @@
 
 namespace admin {
     void init_admin_events(dpp::cluster &bot);
+
     void init_verify_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::sql &sql);
 
     void admin_commands(dpp::cluster &bot,
@@ -25,11 +26,11 @@ namespace admin {
                         const cfg::Config &conf);
 
     void verify_commands(dpp::cluster &bot,
-                        const dpp::slashcommand_t &event,
-                        const dpp::command_interaction &cmd_data,
-                        const cfg::Config &conf,
-                        mysqlpp::Connection &c,
-                        const cfg::sql &sql);
+                         const dpp::slashcommand_t &event,
+                         const dpp::command_interaction &cmd_data,
+                         const cfg::Config &conf,
+                         mysqlpp::Connection &c,
+                         const cfg::sql &sql);
 
 };
 

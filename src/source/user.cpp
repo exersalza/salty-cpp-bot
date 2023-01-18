@@ -13,7 +13,8 @@ void user::init_user_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::Conf
 
 }
 
-void user::user_commands(dpp::cluster &bot, const dpp::slashcommand_t &event, const dpp::command_interaction &cmd_data) {
+void
+user::user_commands(dpp::cluster &bot, const dpp::slashcommand_t &event, const dpp::command_interaction &cmd_data) {
     auto sc = cmd_data.options[0];
 
     if (sc.name == "avatar" && sc.type == dpp::co_sub_command) {
@@ -49,8 +50,9 @@ void user::user_commands(dpp::cluster &bot, const dpp::slashcommand_t &event, co
             });
         } catch (std::exception &e) {
             bot.log(dpp::ll_error, e.what());
-            event.reply(dpp::message(event.command.channel_id, "Something went wrong on your request, please try again later.")
-                    .set_flags(dpp::m_ephemeral));
+            event.reply(dpp::message(event.command.channel_id,
+                                     "Something went wrong on your request, please try again later.")
+                                .set_flags(dpp::m_ephemeral));
         }
     }
 
@@ -89,8 +91,9 @@ void user::user_commands(dpp::cluster &bot, const dpp::slashcommand_t &event, co
             });
         } catch (std::exception &e) {
             bot.log(dpp::ll_error, e.what());
-            event.reply(dpp::message(event.command.channel_id, "Something went wrong on your request, please try again later.")
-                    .set_flags(dpp::m_ephemeral));
+            event.reply(dpp::message(event.command.channel_id,
+                                     "Something went wrong on your request, please try again later.")
+                                .set_flags(dpp::m_ephemeral));
         }
     }
 

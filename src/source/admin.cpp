@@ -30,7 +30,7 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
 
         const dpp::snowflake &channel_id = event.command.channel_id;
 
-        for (auto &i : sc.options) {
+        for (auto &i: sc.options) {
             if (i.name == "embed") {
                 is_embed = sc.get_value<bool>(c);
             }
@@ -66,7 +66,8 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
                 title = sc.get_value<std::string>(c);
 
                 if (title.length() > 256) {
-                    event.reply(dpp::message(channel_id, "Message can't be created with an Title more than 256 characters"));
+                    event.reply(dpp::message(channel_id,
+                                             "Message can't be created with an Title more than 256 characters"));
                     return;
                 }
             }
@@ -79,16 +80,16 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
         if (is_embed) {
             if (res_length > 4096) {
                 event.reply(dpp::message(channel_id, "Message can't be created because the Text for "
-                                                                   "it, is too long to fit in an Embed. (Max size 4096 char.)"));
+                                                     "it, is too long to fit in an Embed. (Max size 4096 char.)"));
                 return;
             }
             dpp::embed em;
 
             em.set_title(title)
-              .set_description(res)
-              .set_color(conf.b_color)
-              .set_footer("Kenexar.eu", bot.me.get_avatar_url())
-              .set_timestamp(time(nullptr));
+                    .set_description(res)
+                    .set_color(conf.b_color)
+                    .set_footer("Kenexar.eu", bot.me.get_avatar_url())
+                    .set_timestamp(time(nullptr));
 
             if (set_server_image)
                 em.set_thumbnail(event.command.get_guild().get_icon_url());
@@ -96,7 +97,9 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
             bot.message_create(dpp::message(channel_id, em));
         } else {
             if ((title.length() + res_length) > 1996) {
-                event.reply(dpp::message(channel_id, fmt::format("Can't create message, Content or title needs to have a lower character count. ({0}/1996)", (title.length() + res_length))));
+                event.reply(dpp::message(channel_id, fmt::format(
+                        "Can't create message, Content or title needs to have a lower character count. ({0}/1996)",
+                        (title.length() + res_length))));
                 return;
             }
             bot.message_create(dpp::message(channel_id, fmt::format("**{0}**\n\n{1}", title, res)));
@@ -136,8 +139,8 @@ void admin::init_verify_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::s
 }
 
 void admin::verify_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
-                           const dpp::command_interaction &cmd_data, const cfg::Config &conf,
-                           mysqlpp::Connection &c, const cfg::sql &sql) {
+                            const dpp::command_interaction &cmd_data, const cfg::Config &conf,
+                            mysqlpp::Connection &c, const cfg::sql &sql) {
 
     auto sc = cmd_data.options[0];
 
@@ -151,10 +154,10 @@ void admin::verify_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
 
             mysqlpp::Query query = c.query();
             query << fmt::format("if not exists(select server_id from salty_cpp_bot.verify where server_id='{0}') then"
-                     "  insert into salty_cpp_bot.verify (server_id, role_id) values ({0}, {1});"
-                     "else"
-                     "  update salty_cpp_bot.verify set role_id = {1} where server_id = {0};"
-                     "end if;", event.command.guild_id, role);
+                                 "  insert into salty_cpp_bot.verify (server_id, role_id) values ({0}, {1});"
+                                 "else"
+                                 "  update salty_cpp_bot.verify set role_id = {1} where server_id = {0};"
+                                 "end if;", event.command.guild_id, role);
 
             // Do the query stuff here, so I can drop the db connection afterwards. copy & paste monkey here
             query.execute();
@@ -172,21 +175,21 @@ void admin::verify_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
         dpp::embed em;
 
         em.set_title("Verify")
-            .set_description("Please verify yourself with a press on the button below.")
-            .set_color(0x00ff00)
-            .set_footer("Kenexar.eu - Verify", bot.me.get_avatar_url());
+                .set_description("Please verify yourself with a press on the button below.")
+                .set_color(0x00ff00)
+                .set_footer("Kenexar.eu - Verify", bot.me.get_avatar_url());
 
         event.reply(dpp::message(fmt::format("Verify message created. {0} please don't forget to set a role "
                                              "with `/verify role` otherwise will the verify system not work.",
                                              event.command.usr.get_mention())).set_flags(dpp::m_ephemeral));
 
         bot.message_create(dpp::message(event.command.channel_id, em).add_component(
-                    dpp::component().add_component(dpp::component()
-                                                    .set_type(dpp::cot_button)
-                                                    .set_id("verify")
-                                                    .set_emoji("✔️")
-                                                    .set_label("Verify")
-                                                    .set_style(dpp::cos_primary))));
+                dpp::component().add_component(dpp::component()
+                                                       .set_type(dpp::cot_button)
+                                                       .set_id("verify")
+                                                       .set_emoji("✔️")
+                                                       .set_label("Verify")
+                                                       .set_style(dpp::cos_primary))));
 
         ticket::connect(c, sql);
 

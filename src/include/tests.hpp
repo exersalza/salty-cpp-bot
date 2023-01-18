@@ -13,14 +13,14 @@
 
 #include "config.hpp"
 
-namespace t{
+namespace t {
     void init_tests_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::Config &config);
 
     void tests_commands(dpp::cluster &bot,
-                         const dpp::slashcommand_t &event,
-                         const dpp::command_interaction &cmd_data,
-                         mysqlpp::Connection &c,
-                         cfg::Config &conf);
+                        const dpp::slashcommand_t &event,
+                        const dpp::command_interaction &cmd_data,
+                        mysqlpp::Connection &c,
+                        cfg::Config &conf);
 }
 
 #endif //DCBOT_TESTS_HPP

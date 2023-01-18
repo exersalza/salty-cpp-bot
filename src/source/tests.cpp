@@ -12,10 +12,10 @@ void t::init_tests_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::Config
 }
 
 void t::tests_commands(dpp::cluster &bot,
-                         const dpp::slashcommand_t &event,
-                         const dpp::command_interaction &cmd_data,
-                         mysqlpp::Connection &c,
-                         cfg::Config &conf) {
+                       const dpp::slashcommand_t &event,
+                       const dpp::command_interaction &cmd_data,
+                       mysqlpp::Connection &c,
+                       cfg::Config &conf) {
 
     auto sc = cmd_data.options[0];
 

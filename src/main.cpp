@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
     const std::string &token = config.getToken("dev"); // todo:  remove dev
     long uptime = time(nullptr);
 
-    std::map<int, std::string> ll_map {
+    std::map<int, std::string> ll_map{
             {0, "trace"},
             {1, "debug"},
             {2, "info"},
@@ -69,7 +69,8 @@ int main(int argc, char *argv[]) {
 
         if (!config.log_webhook.empty()) {
             if (lt.message.find("Initial") != std::string::npos
-                        || lt.message.find("GUILD_AUDIT_LOG_ENTRY_CREATE") != std::string::npos) { // GUILD_AUDIT_LOG_ENTRY_CREATE bug - not fixed
+                || lt.message.find("GUILD_AUDIT_LOG_ENTRY_CREATE") !=
+                   std::string::npos) { // GUILD_AUDIT_LOG_ENTRY_CREATE bug - not fixed
                 return;
             }
 
@@ -90,7 +91,8 @@ int main(int argc, char *argv[]) {
 
                     while (true) {
                         try {
-                            bot.set_presence(dpp::presence(dpp::ps_online, dpp::activity_type::at_watching, "the development of me."));
+                            bot.set_presence(dpp::presence(dpp::ps_online, dpp::activity_type::at_watching,
+                                                           "the development of me."));
                             sleep(120);
                         } catch (std::exception &e) {
                             bot.log(dpp::ll_error, fmt::format("FUCK, somethin went wron {0}", e.what()));
@@ -193,13 +195,13 @@ int main(int argc, char *argv[]) {
             dpp::embed em;
 
             em.set_title("Credits")
-              .set_description("Here can you see, who to blame.\n\n**Bot Creator**: "
-                               "[exersalza[>'-']>](https://github.com/exersalza)\n"
-                               "**Website Creator**: [ZerXDE](https://github.com/zerxgit)\n\n"
-                               "[Our Discord](https://discord.gg/W3Yf53dBMH) "
-                               "**|** [GitHub](https://github.com/exersalza/salty-cpp-bot)")
-              .set_color(config.b_color)
-              .set_footer("Kenexar.eu", bot.me.get_avatar_url());
+                    .set_description("Here can you see, who to blame.\n\n**Bot Creator**: "
+                                     "[exersalza[>'-']>](https://github.com/exersalza)\n"
+                                     "**Website Creator**: [ZerXDE](https://github.com/zerxgit)\n\n"
+                                     "[Our Discord](https://discord.gg/W3Yf53dBMH) "
+                                     "**|** [GitHub](https://github.com/exersalza/salty-cpp-bot)")
+                    .set_color(config.b_color)
+                    .set_footer("Kenexar.eu", bot.me.get_avatar_url());
 
             event.edit_response(dpp::message(event.command.channel_id, em));
         }
