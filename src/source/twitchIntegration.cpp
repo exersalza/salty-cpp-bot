@@ -120,12 +120,22 @@ void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& 
             response = json::parse(u::requests(fmt::format("https://api.twitch.tv/helix/streams?{0}", i).c_str(), helix_header));
         }
 
+        json profile_pic = json::parse(u::requests(fmt::format("https://api.twitch.tv/helix/users?{0}",
+                                                               std::regex_replace(i, std::regex("user_"), "")).c_str(),
+                                                               helix_header));
+
+        json &pp = profile_pic["data"];
+        json pp_pics; // sounds maybe wrong, but I meant Profile-Pics-Pics
         json &data = response["data"];
+
+        for (auto &j : pp) {
+            pp_pics[(std::string)j["id"]] = j["profile_image_url"];
+        }
 
         for (auto &j : data) {
             active_streams.push_back((std::string)j["user_id"]);
 
-            if (twitch_content_map.contains(j["user_id"]))
+            if (twitch_content_map.contains((std::string)j["user_id"]))
                 continue;
 
             twitch_content_map[(std::string)j["user_id"]] = {
@@ -136,6 +146,7 @@ void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& 
                     {"viewer_count", j["viewer_count"]},
                     {"lang", j["language"]},
                     {"started_at", j["started_at"]},
+                    {"profile_image_url", pp_pics[(std::string)j["user_id"]]},
                     {"send", false}
             };
         }
@@ -173,7 +184,7 @@ void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& 
 
         em.set_author(fmt::format("{0} is now Live!", name),
                       fmt::format("https://twitch.tv/{0}", name),
-                      bot.me.get_avatar_url())
+                      streamer["profile_image_url"])
           .set_title(streamer["title"])
           .set_url(fmt::format("https://twitch.tv/{0}", name))
           .set_color(0x6441a5)
@@ -204,7 +215,7 @@ void twitch::init(cfg::Config& config, mysqlpp::Connection& conn, dpp::cluster& 
                                                 .set_url(fmt::format("https://twitch.tv/{}", name))));
             bot.message_create(msg);
         }
-        twitch_content_map[i.key()]["send"] = true;
+//        twitch_content_map[i.key()]["send"] = true;
     }
 
     // create cache
