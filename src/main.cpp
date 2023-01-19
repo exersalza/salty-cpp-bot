@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
     }
     conn.disconnect();
 
-    const std::string &token = config.getToken("dev"); // todo:  remove dev
+    const std::string &token = config.getToken();
     long uptime = time(nullptr);
 
     std::map<int, std::string> ll_map{
