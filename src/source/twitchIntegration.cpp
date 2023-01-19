@@ -177,7 +177,7 @@ void twitch::twitch_commands(dpp::cluster &bot, const dpp::slashcommand_t &event
 }
 
 
-void twitch::generateNewToken(cfg::twitch &twitch_config) {
+void twitch::generateNewToken(cfg::twitch &twitch_config, cfg::Config &conf) {
     auto f = fmt::format("client_id={0}&client_secret={1}&grant_type=client_credentials",
                          twitch_config.id, twitch_config.secret);
 
@@ -200,6 +200,9 @@ void twitch::generateNewToken(cfg::twitch &twitch_config) {
     config["twitch_client"] = twitch_config.id;
     config["twitch_secret"] = twitch_config.secret;
     config["twitch_oauth"] = twitch_config.oauth;
+
+    // update the twitch stuff globally
+    conf.updateTwitchConfig(config);
 
     // dump new file.
     std::ofstream of("twitch_config.json");
@@ -270,7 +273,7 @@ void twitch::init(cfg::Config &config, mysqlpp::Connection &conn, dpp::cluster &
                                                 helix_header)); // {"error":"Unauthorized","status":401,"message":"Invalid OAuth token"}
 
         if (response.find("status") != response.end()) {
-            twitch::generateNewToken(twitch_config);
+            twitch::generateNewToken(twitch_config, config);
 
             helix_header.clear();
             bearer = fmt::format("Authorization: Bearer {0}", twitch_config.oauth);

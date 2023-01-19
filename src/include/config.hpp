@@ -41,6 +41,7 @@ namespace cfg {
 
         [[nodiscard]] sql getSqlConf();
 
+        void updateTwitchConfig(json &conf);
         [[nodiscard]] twitch getTwitchConf();
 
         int b_color = 0xbc3440;
@@ -52,6 +53,11 @@ namespace cfg {
         std::string dev_token;
         std::string path;
         std::string twitch_path;
+
+        std::string t_oauth;
+        std::string t_id;
+        std::string t_secret;
+
     };
 
 

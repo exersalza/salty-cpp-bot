@@ -18,7 +18,7 @@
 
 
 namespace twitch {
-    void generateNewToken(cfg::twitch &twitch);
+    void generateNewToken(cfg::twitch &twitch, cfg::Config &conf);
 
     void init(cfg::Config &config, mysqlpp::Connection &conn, dpp::cluster &bot, cfg::sql &sql);
     void twitch_commands(dpp::cluster &bot,
