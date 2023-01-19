@@ -58,7 +58,10 @@ int main(int argc, char *argv[]) {
 
     dpp::cache<dpp::message> bot_message_cache;
 
-    bot.on_log([&bot, &config, &ll_map](const dpp::log_t &lt) {
+    bot.on_log([&bot, &config, &ll_map](const dpp::log_t &lt) { // Log level should be checked before logging
+        if (lt.message.find("GUILD_AUDIT_LOG_ENTRY_CREATE") != std::string::npos) {
+            return;
+        }
         std::time_t ct = std::time(nullptr);
 
         std::string t = std::ctime(&ct);
@@ -68,9 +71,7 @@ int main(int argc, char *argv[]) {
         std::cout << output_str << '\n';
 
         if (!config.log_webhook.empty()) {
-            if (lt.message.find("Initial") != std::string::npos
-                || lt.message.find("GUILD_AUDIT_LOG_ENTRY_CREATE") !=
-                   std::string::npos) { // GUILD_AUDIT_LOG_ENTRY_CREATE bug - not fixed
+            if (lt.message.find("Initial") != std::string::npos) {
                 return;
             }
 

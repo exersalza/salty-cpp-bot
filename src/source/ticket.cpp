@@ -93,7 +93,6 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
                 mod_roles.push_back(role_res[i]["role_id"]);
             }
 
-            dpp::embed em;
             dpp::channel channel;
             std::string channel_mention;
             dpp::guild guild = event_cmd.get_guild();
@@ -116,13 +115,14 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
                                                  dpp::permissions::p_view_channel, 0);
             }
 
-            bot.channel_create(channel, [&, event, notify_id](const dpp::confirmation_callback_t &confm) {
+            bot.channel_create(channel, [&c, &sql, &guild, &user, &bot, event, notify_id](const dpp::confirmation_callback_t &confm) {
                 if (confm.is_error()) {
                     confm_error<dpp::button_click_t>(bot, event, confm);
                     return;
                 }
 
                 auto new_ticket = confm.get<dpp::channel>();
+                dpp::embed em;
 
                 connect(c, sql);
                 mysqlpp::Query query = c.query();
@@ -195,10 +195,17 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
 
         if (event.custom_id == "ticket_close") {
             auto &channel = event.command.get_channel();
+            connect(c, sql);
+            mysqlpp::Query query = c.query();
+            query << fmt::format("select closed from salty_cpp_bot.cur_tickets where ticket_id = {}", event.command.channel_id);
+            auto res = query.store();
+            c.disconnect();
 
-            if (channel.name.find("closed-") != std::string::npos) {
-                event.reply(dpp::message("Ticket is already closed.").set_flags(dpp::m_ephemeral));
-                return;
+            for (auto &i : res) { // prevent edge cases. :)
+                if (i["closed"]) {
+                    event.reply(dpp::message("Ticket is already closed.").set_flags(dpp::m_ephemeral));
+                    return;
+                }
             }
 
             dpp::embed em;
@@ -238,8 +245,15 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
 
             event.reply(dpp::message("ticket gets closed"));
 
+            connect(c, sql);
+            mysqlpp::Query query1 = c.query();
+            query1 << fmt::format("update salty_cpp_bot.cur_tickets set closed = 1 where ticket_id = {} and server_id = {}",
+                                    event.command.channel_id, event.command.guild_id);
+            query1.execute();
+            c.disconnect();
+
             // prevent rate limitation on channel edit
-            if (channel.name.find("closed-") != std::string::npos)
+            if (channel.name.find("closed-") == std::string::npos)
                 bot.channel_edit(channel.set_name(fmt::format("closed-{0}", channel.name)));
 
             connect(c, sql);
@@ -292,18 +306,20 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
         }
 
         if (event.custom_id == "ticket_reopen") {
-            event.thinking();
+            event.thinking(true);
             dpp::channel channel = event_cmd.get_channel();
 
             connect(c, sql);
             mysqlpp::Query query = c.query();
 
             query << fmt::format(
-                    "select user_id from salty_cpp_bot.cur_tickets where server_id = {0} and ticket_id = {1};",
+                    "select user_id from salty_cpp_bot.cur_tickets where server_id = {0} and ticket_id = {1};"
+                    "update salty_cpp_bot.cur_tickets set closed = 0 where server_id = {0} and ticket_id = {1};",
                     event_cmd.guild_id, event_cmd.channel_id);
 
             mysqlpp::StoreQueryResult res = query.store();
             size_t user_id = res[0]["user_id"];
+            query.store_next();
 
             u::kill_query(query);
             c.disconnect();
@@ -314,8 +330,9 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
             sleep(2);
             try {
                 bot.channel_edit_permissions(channel.id, user_id, dpp::permissions::p_view_channel, 0, true);
-
-                event.edit_original_response(fmt::format("<@{0}> your ticket got Re-Opened.", user_id));
+                dpp::message msg(event.command.channel_id, fmt::format("<@{0}> your ticket got Re-Opened.", user_id));
+                msg.set_allowed_mentions(true, false, false, false, {}, {});
+                bot.message_create(msg);
             } catch (std::exception &e) {
                 try {
                     event.edit_original_response(dpp::message("Can't reopen ticket, try again in a few minutes"));
