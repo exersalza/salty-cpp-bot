@@ -21,7 +21,7 @@ void twitch::twitch_commands(dpp::cluster &bot, const dpp::slashcommand_t &event
     if (sc.name == "add") {
         std::string name = sc.get_value<std::string>(0);
         size_t channel_id = sc.get_value<dpp::snowflake>(1);
-        std::string message;
+        std::string message = "NULL";
         std::vector<const char*> helix_header;
         cfg::twitch twitch_config = config.getTwitchConf();
         std::string bearer{fmt::format("Authorization: Bearer {0}", twitch_config.oauth)};
@@ -44,6 +44,10 @@ void twitch::twitch_commands(dpp::cluster &bot, const dpp::slashcommand_t &event
 
         json &streamer = response["data"][0];
 
+        if (streamer.empty()) {
+            event.edit_response(fmt::format("The Streamer `{}` can't be found. Check if the Username is right and try again.", name));
+            return;
+        }
 
         ticket::connect(conn, sql);
         mysqlpp::Query query = conn.query();
@@ -51,16 +55,124 @@ void twitch::twitch_commands(dpp::cluster &bot, const dpp::slashcommand_t &event
                              event.command.guild_id, streamer["id"]);
         auto res = query.store();
 
-        std::cout << (std::find(res[0].begin(), res[0].end(), "id") != res[0].end()) << '\n';
-        if (res.size() != 0) {
-
+        for (auto &i : res) {
+            event.edit_response("This streamer is already linked to the Server, when you want to change something, refer to `/help twitch`.");
+            conn.disconnect();
+            return;
         }
 
+        query.clear();
+        query << fmt::format("insert into salty_cpp_bot.twitch (stream_id, channel_id, message, server_id) values ({}, {}, %0q, {})",
+                             streamer["id"], event.command.channel_id, event.command.guild_id);
+        query.parse();
+        query.execute(message);
         conn.disconnect();
+
+        if (message == "NULL")
+            message = "No message given";
+
+
+        event.edit_response(fmt::format("Added `{}` to the watchlist, the messages will be send in <#{}> with the message: {}.",
+                                        streamer["display_name"], channel_id, message));
     }
 
     if (sc.name == "remove") {
+        std::string name = sc.get_value<std::string>(0);
+        std::vector<const char*> helix_header;
+        cfg::twitch twitch_config = config.getTwitchConf();
+        std::string bearer{fmt::format("Authorization: Bearer {0}", twitch_config.oauth)};
+        std::string client_id{fmt::format("Client-Id: {0}", twitch_config.id)};
 
+        helix_header.push_back(bearer.c_str());
+        helix_header.push_back(client_id.c_str());
+
+
+        json response = json::parse(u::requests(fmt::format("https://api.twitch.tv/helix/users?login={0}", name).c_str(),
+                                                helix_header));
+
+        if (response.contains("status")) {
+            event.edit_response("Can't do that right now, try again in a Minute. thx :)");
+            return;
+        }
+
+        json &streamer = response["data"][0];
+
+        if (streamer.empty()) {
+            event.edit_response(fmt::format("The Streamer `{}` can't be found. Check if the Username is right and try again.", name));
+            return;
+        }
+
+        ticket::connect(conn, sql);
+        mysqlpp::Query query = conn.query();
+
+        query << fmt::format("select stream_id from salty_cpp_bot.twitch where server_id = {} and stream_id = {}",
+                             streamer["id"], event.command.guild_id);
+        auto res = query.store();
+
+        if (res[0].empty()) {
+            event.reply("This stream has already been removed from the watchlist.");
+            conn.disconnect();
+            return;
+        }
+
+        query.clear();
+        query << fmt::format("delete from salty_cpp_bot.twitch where stream_id = {} and server_id = {}",
+                             streamer["id"], event.command.guild_id);
+
+        conn.disconnect();
+        event.reply(fmt::format("Removed `{}` from the watchlist.", streamer["display_name"]));
+
+    }
+
+    if (sc.name == "list") {
+        std::vector<const char*> helix_header;
+        cfg::twitch twitch_config = config.getTwitchConf();
+        std::string bearer{fmt::format("Authorization: Bearer {0}", twitch_config.oauth)};
+        std::string client_id{fmt::format("Client-Id: {0}", twitch_config.id)};
+        std::stringstream ids;
+
+        helix_header.push_back(bearer.c_str());
+        helix_header.push_back(client_id.c_str());
+
+
+        ticket::connect(conn, sql);
+        mysqlpp::Query query = conn.query();
+
+        query << fmt::format("select stream_id from salty_cpp_bot.twitch where server_id = {}", event.command.guild_id);
+        auto res = query.store();
+
+        for (auto &i : res) {
+            ids << "id=" << i["stream_id"] << "&";
+        }
+
+        dpp::embed em;
+        json response;
+        em.set_title("Streamer watchlist")
+          .set_color(config.b_color)
+          .set_footer("Kenexar.eu", bot.me.get_avatar_url());
+
+        if (!ids.str().empty()) {
+            ids << "first=50";
+            conn.disconnect();
+
+            response = json::parse(u::requests(fmt::format("https://api.twitch.tv/helix/users?{0}", ids.str()).c_str(),
+                                                    helix_header));
+
+            if (response.contains("status")) {
+                event.edit_response("Can't do that right now, try again in a Minute. thx :)");
+                return;
+            }
+
+            json &streamers = response["data"];
+
+            for (auto &j : streamers) {
+                em.add_field(j["display_name"], j["description"]);
+            }
+        } else {
+            em.add_field("You have no streamers linked to the Server.", "Use `/twitch add <name> <channel>` to add some.");
+        }
+
+        event.edit_response(dpp::message(event.command.channel_id, em));
     }
 }
 
