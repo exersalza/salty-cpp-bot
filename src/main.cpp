@@ -27,10 +27,12 @@
 
 
 int main(int argc, char *argv[]) {
+    bool is_dev = true;
 
     // Normal config shit
     cfg::Config config = cfg::Config("config.json");
     cfg::sql sql = config.getSqlConf();
+
 
     // SQL Shit
     mysqlpp::Connection conn;
@@ -41,8 +43,14 @@ int main(int argc, char *argv[]) {
         return -1;
     }
     conn.disconnect();
+    std::string token;
 
-    const std::string &token = config.getToken();
+    if (is_dev) {
+        token = config.getToken("dev");
+    } else {
+        token = config.getToken();
+    }
+
     long uptime = time(nullptr);
 
     std::map<int, std::string> ll_map{
@@ -55,8 +63,6 @@ int main(int argc, char *argv[]) {
     };
 
     dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
-
-    dpp::cache<dpp::message> bot_message_cache;
 
     bot.on_log([&bot, &config, &ll_map](const dpp::log_t &lt) { // Log level should be checked before logging
         if (lt.message.find("GUILD_AUDIT_LOG_ENTRY_CREATE") != std::string::npos) {
@@ -134,7 +140,6 @@ int main(int argc, char *argv[]) {
         if (event.msg.author.is_bot())
             return;
 
-
         std::string msg_content = event.msg.content;
         std::vector<std::string> splitet_msg_cont = u::split(msg_content);
 
@@ -147,8 +152,6 @@ int main(int argc, char *argv[]) {
         dpp::interaction interaction = event.command;
         dpp::command_interaction cmd_data = interaction.get_command_interaction();
 
-
-        // todo: use map for commands.
         if (interaction.get_command_name() == "ticket") {
             ticket::ticket_commands(bot, event, cmd_data, conn, config, sql);
         }

@@ -15,7 +15,7 @@ RUN pacman -Sy git curl openssl cmake gcc make fmt nlohmann-json vim mysql --noc
 RUN cd /home/ && chmod 777 startup.sh && ./startup.sh
 
 # Run compiling sequence
-RUN cmake . && make
+RUN cmake -DCMAKE_BUILD_TYPE=Release . && make
 
 # Run bot and hope for the best.
 # Make sure the configs are settet all right, like sql and stuff.
