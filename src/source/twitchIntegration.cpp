@@ -342,7 +342,7 @@ void twitch::init(cfg::Config &config, mysqlpp::Connection &conn, dpp::cluster &
         std::stringstream m;
         m << viewer_count;
 
-        struct tm tm{};
+        struct tm tm {};
         std::string ts = streamer["started_at"];
 
         strptime(ts.c_str(), "%Y-%m-%dT%H:%M:%SZ", &tm);
