@@ -576,8 +576,6 @@ void ticket::ticket_commands(dpp::cluster &bot,
         if (sub.name.find("maxticketcount") != std::string::npos) {
             long count = 0;
 
-            //TODO: Change output on input of 0
-
             if (!sub.options.empty())
                 count = sub.get_value<long>(0);
 
@@ -602,7 +600,7 @@ void ticket::ticket_commands(dpp::cluster &bot,
             std::stringstream output;
 
             if (count)
-                output << fmt::format("{0} was setted a new max count. To deactivate the limit use 0 as count.", count);
+                output << fmt::format("{0} was set as new max count. To deactivate the limit use 0 as count.", count);
             else
                 output << "Max Ticket count per user is now Deactivated.";
 
@@ -654,8 +652,8 @@ void ticket::ticket_commands(dpp::cluster &bot,
                     output += fmt::format("<@&{0}> ", value);
                     ++count;
                 }
-                c.disconnect();
                 query.execute();
+                c.disconnect();
 
                 output += "from the database.";
                 event.edit_original_response(output);
@@ -664,7 +662,6 @@ void ticket::ticket_commands(dpp::cluster &bot,
     }
 
     if (sc.name == "config") {
-        //TODO: send empty role when no is given, otherwise error
         em.set_title("Ticket System configuration")
                 .set_description(fmt::format("Config for {0}", event.command.get_guild().name))
                 .set_color(conf.b_color)
@@ -709,8 +706,8 @@ void ticket::ticket_commands(dpp::cluster &bot,
 
         em.add_field("Enabled", enabled ? "True" : "False", true);
         em.add_field("Max Ticket for users", fmt::format("{0}", max_ticket_out.str()), true);
-        em.add_field("Category for new ticket.", fmt::format("<#{0}>", category_id), true);
-        em.add_field("Notify channel for new tickets.", fmt::format("<#{0}>", notify_channel), true);
+        em.add_field("Category for new ticket.", category_id ? fmt::format("<#{0}>", category_id) : "None set", true);
+        em.add_field("Notify channel for new tickets.", notify_channel ? fmt::format("<#{0}>", notify_channel) : "Disabled", true);
         em.add_field("Created tickets on this server", fmt::format("{0}", ticket_count), true);
 
         em.add_field("Support Roles:", ((roles.str()).length() != 0) ? roles.str() : "No Support roles given", false);
