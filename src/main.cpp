@@ -27,9 +27,7 @@
 
 #define DEV true
 
-
 int main(int argc, char *argv[]) {
-
     // Normal config shit
     cfg::Config config = cfg::Config("config.json");
     cfg::sql sql = config.getSqlConf();

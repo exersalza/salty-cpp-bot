@@ -187,7 +187,7 @@ inline std::map<std::string, cmds> commands{
                             .add_option(dpp::command_option(dpp::co_string, "name", "The name of the streamer to remove.")),
                         dpp::command_option(dpp::co_sub_command, "list", "List all streamer that are linked to this Server.")
                 }}
-        }
+        },
 };
 
 inline void createcmds(dpp::cluster &bot) {
