@@ -194,7 +194,6 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
         }
 
         if (event.custom_id == "ticket_close") {
-            auto &channel = event.command.get_channel();
             connect(c, sql);
             mysqlpp::Query query = c.query();
             query << fmt::format("select closed from salty_cpp_bot.cur_tickets where ticket_id = {}", event.command.channel_id);
@@ -269,7 +268,7 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
             u::kill_query(query);
             c.disconnect();
 
-            bot.channel_delete_permission(channel, user_id, [&message_id, &channel_id, &bot, &config, &event](
+            bot.channel_delete_permission(channel, user_id, [message_id, channel_id, &bot, &config, event](
                     const dpp::confirmation_callback_t &confm) {
                 if (confm.is_error()) {
                     ticket::confm_error(bot, event, confm);
@@ -326,7 +325,8 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
 
             bot.message_delete(event_cmd.message_id, channel.id);
 
-            // prevent rate limitation. works sometimes. but still needs some work. I think it is fixed, but the tests will show.
+            // prevent rate limitation. works sometimes. but still needs some work.
+            // I think it is fixed, but the tests will show.
             sleep(2);
             try {
                 bot.channel_edit_permissions(channel.id, user_id, dpp::permissions::p_view_channel, 0, true);
@@ -360,7 +360,6 @@ void ticket::init_ticket_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::
             event.reply(dpp::message("Ticket claimed").set_flags(dpp::m_ephemeral));
             return;
         }
-
     });
 
     bot.on_channel_delete([&c, &sql](const dpp::channel_delete_t &event) {
@@ -432,7 +431,6 @@ void ticket::ticket_commands(dpp::cluster &bot,
 
         title = (std::string) res[0]["ticket_title"];
 
-
         em.set_color(0xbc3440)
                 .set_title(title)
                 .set_description("Create a ticket with 📝")
@@ -440,13 +438,13 @@ void ticket::ticket_commands(dpp::cluster &bot,
                 .set_timestamp(time(nullptr));
 
         try {
+            size_t channel_id;
             if (!sc.options.empty()) {
-                std::size_t channel_id = sc.get_value<dpp::snowflake>(0);
-                bot.message_create(ticket::create_ticket_message(channel_id, em));
+                channel_id = sc.get_value<dpp::snowflake>(0);
             } else {
-                std::size_t channel_id = event.command.channel_id;
-                bot.message_create(ticket::create_ticket_message(channel_id, em));
+                channel_id = event.command.channel_id;
             }
+            bot.message_create(ticket::create_ticket_message(channel_id, em));
             event.reply(dpp::message("Ticket message got created.").set_flags(dpp::m_ephemeral));
 
         } catch (std::exception &e) {
