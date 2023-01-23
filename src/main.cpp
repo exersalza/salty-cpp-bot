@@ -25,9 +25,10 @@
 #include "include/initCommands.hpp"
 #include "include/twitchIntegration.hpp"
 
+#define DEV true
+
 
 int main(int argc, char *argv[]) {
-    bool is_dev = true;
 
     // Normal config shit
     cfg::Config config = cfg::Config("config.json");
@@ -45,7 +46,7 @@ int main(int argc, char *argv[]) {
     conn.disconnect();
     std::string token;
 
-    if (is_dev) {
+    if (DEV) {
         token = config.getToken("dev");
     } else {
         token = config.getToken();
@@ -107,7 +108,7 @@ int main(int argc, char *argv[]) {
                     }
                 });
                 thr_presence.detach();
-
+#if not DEV
                 std::thread twitch_loop([&config, &conn, &bot, &sql]() {
                     bot.log(dpp::ll_debug, "twitch loop started");
                     while (true) {
@@ -115,7 +116,9 @@ int main(int argc, char *argv[]) {
                         twitch::init(config, conn, bot, sql); // init the twitch integration.
                     }
                 });
+
                 twitch_loop.detach();
+#endif
 
                 // IT'S NOT MANUEL ANYMORE
                 createcmds(bot);
