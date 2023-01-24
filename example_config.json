@@ -3,6 +3,7 @@
 {
   "token": "",
   "dev_token": "",
+  "webhook": ["WEBHOOK1", "WEBHOOK2"],
   "db": "",
   "host": "",
   "user": "",
