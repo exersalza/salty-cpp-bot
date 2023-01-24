@@ -42,6 +42,8 @@ namespace u {
 
     std::string post(const char *url, const char *post_opt);
 
+    std::string random_string(size_t length);
+
 } // u
 
 

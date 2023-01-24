@@ -356,8 +356,8 @@ void twitch::init(cfg::Config &config, mysqlpp::Connection &conn, dpp::cluster &
                 .add_field("Game:", (std::string) streamer["game_name"], true)
                 .add_field("Viewer count:", m.str(), true)
                 .set_image(
-                        fmt::format("https://static-cdn.jtvnw.net/previews-ttv/live_user_{0}-{width}x{height}.jpg",
-                                    u::stol(name), fmt::arg("width", 1920), fmt::arg("height", 1080)))
+                        fmt::format("https://static-cdn.jtvnw.net/previews-ttv/live_user_{0}-{width}x{height}.jpg?{rnd}=1",
+                                    u::stol(name), fmt::arg("width", 1920), fmt::arg("height", 1080), fmt::arg("rnd",  u::random_string(7))))
                 .set_footer(fmt::format("Kenexar.eu - Lang: {}", streamer["lang"]), bot.me.get_avatar_url())
                 .set_timestamp(mktime(&tm));
 
