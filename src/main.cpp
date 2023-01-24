@@ -23,6 +23,7 @@
 #include "include/utils.hpp"
 #include "include/config.hpp"
 #include "include/ticket.hpp"
+#include "include/joinToCreate.hpp"
 #include "include/initCommands.hpp"
 #include "include/twitchIntegration.hpp"
 
@@ -89,7 +90,6 @@ int main(int argc, char *argv[]) {
             size_t index = dist6(rng);
             if (index == last_index)
                 index = dist6(rng);
-
 
             last_index = index;
 
