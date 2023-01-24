@@ -29,7 +29,10 @@ cfg::Config::Config(std::string &&path) : path(path) {
 
     token = _data["token"];
     dev_token = _data["dev_token"];
-    log_webhook = _data["webhook"];
+
+    for (auto &i : _data["webhook"]) {
+        log_webhook.push_back(i);
+    }
 
 
     if (log_webhook.empty()) {

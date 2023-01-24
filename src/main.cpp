@@ -10,6 +10,7 @@
 #include <ctime>
 #include <chrono>
 #include <iostream>
+#include <random>
 #include <unistd.h>
 #include <dpp/dpp.h>
 #include <fmt/format.h>
@@ -28,10 +29,11 @@
 #define DEV true
 
 int main(int argc, char *argv[]) {
+
+
     // Normal config shit
     cfg::Config config = cfg::Config("config.json");
     cfg::sql sql = config.getSqlConf();
-
 
     // SQL Shit
     mysqlpp::Connection conn;
@@ -61,9 +63,15 @@ int main(int argc, char *argv[]) {
             {5, "critical"}
     };
 
+    // random number gen
+    std::random_device dev;
+    size_t last_index;
+    std::mt19937 rng(dev());
+    std::uniform_int_distribution<std::mt19937::result_type> dist6(0, config.log_webhook.size() - 1);
+
     dpp::cluster bot(token, dpp::i_default_intents | dpp::i_message_content);
 
-    bot.on_log([&bot, &config, &ll_map](const dpp::log_t &lt) { // Log level should be checked before logging
+    bot.on_log([&bot, &config, &ll_map, &dist6, &rng, &last_index](const dpp::log_t &lt) { // Log level should be checked before logging
         if (lt.message.find("GUILD_AUDIT_LOG_ENTRY_CREATE") != std::string::npos) {
             return;
         }
@@ -80,7 +88,14 @@ int main(int argc, char *argv[]) {
                 return;
             }
 
-            dpp::webhook wh(config.log_webhook);
+            size_t index = dist6(rng);
+            if (index == last_index)
+                index = dist6(rng);
+
+
+            last_index = index;
+
+            dpp::webhook wh(config.log_webhook[index]);
             bot.execute_webhook(wh, dpp::message(output_str));
         }
 
