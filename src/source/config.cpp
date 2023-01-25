@@ -40,7 +40,7 @@ cfg::Config::Config(std::string &&path) : path(path) {
     }
 
     if (!dev_token.empty()) {
-        std::cout << "\u001b[31m---- USING DEV TOKEN ----\u001b[0m" << std::endl;
+        std::cout << "\u001b[31m---- USING IS_DEV TOKEN ----\u001b[0m" << std::endl;
     }
 
 

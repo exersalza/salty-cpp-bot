@@ -23,11 +23,10 @@
 #include "include/utils.hpp"
 #include "include/config.hpp"
 #include "include/ticket.hpp"
-#include "include/joinToCreate.hpp"
 #include "include/initCommands.hpp"
 #include "include/twitchIntegration.hpp"
 
-#define DEV false
+#define IS_DEV true
 
 int main(int argc, char *argv[]) {
     // Normal config shit
@@ -45,7 +44,7 @@ int main(int argc, char *argv[]) {
     conn.disconnect();
     std::string token;
 
-    if (DEV) {
+    if (IS_DEV) {
         token = config.getToken("dev");
     } else {
         token = config.getToken();
@@ -119,7 +118,7 @@ int main(int argc, char *argv[]) {
                     }
                 });
                 thr_presence.detach();
-#if not DEV
+#if not IS_DEV
                 std::thread twitch_loop([&config, &conn, &bot, &sql]() {
                     bot.log(dpp::ll_debug, "twitch loop started");
                     while (true) {
@@ -180,6 +179,10 @@ int main(int argc, char *argv[]) {
 
         if (interaction.get_command_name() == "admin") {
             admin::admin_commands(bot, event, cmd_data, config);
+        }
+
+        if (interaction.get_command_name() == "jtc") {
+            jtc::jtc_commands(bot, event, cmd_data, config);
         }
 
         if (interaction.get_command_name() == "help") {
