@@ -20,7 +20,6 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
     dpp::guild guild = event.command.get_guild();
     short c = 0;
 
-
     if (sc.name == "send") {
         bool is_embed = false;
         bool set_server_image = false;
