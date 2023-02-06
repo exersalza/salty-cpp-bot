@@ -7,9 +7,9 @@
 
 #include <fmt/format.h>
 
-#include "../include/twitchIntegration.hpp"
-#include "../include/config.hpp"
 #include "../include/utils.hpp"
+#include "../include/config.hpp"
+#include "../include/twitchIntegration.hpp"
 
 void twitch::twitch_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
                              const dpp::command_interaction &cmd_data, cfg::Config &config,
