@@ -16,7 +16,7 @@
 
 struct cmds;
 
-void createcmds(dpp::cluster &);
+void create_cmds(dpp::cluster &bot);
 
 dpp::command_option m_user(dpp::co_user, "user", "Mention user, when not, it will take you.");
 
@@ -130,10 +130,13 @@ inline std::map<std::string, cmds> commands{
                                                    .add_option(dpp::command_option(
                                                            dpp::co_attachment, "file",
                                                            "Please use text files that include the Message to send. (*.txt)",
-                                                           true)) // force the user to supply a file.
+                                                           false)) // force the user to supply a file.
                                                    .add_option(dpp::command_option(
                                                            dpp::co_string, "title",
                                                            "Set a title."))
+                                                   .add_option(dpp::command_option(
+                                                           dpp::co_string, "text",
+                                                           "Give a short text, so you dont need to use the file mode :)"))
                                                    .add_option(dpp::command_option(
                                                            dpp::co_boolean, "embed",
                                                            "Is the message worth to be send as an Embed? Standard is false."))
@@ -193,9 +196,11 @@ inline std::map<std::string, cmds> commands{
         },
 };
 
-inline void createcmds(dpp::cluster &bot) {
+inline void create_cmds(dpp::cluster &bot) {
     if (dpp::run_once<struct register_commands>()) {
         std::vector<dpp::slashcommand> cmds;
+
+        cmds.reserve(commands.size());
 
         for (auto &i: commands) {
             dpp::slashcommand c;

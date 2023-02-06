@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
 #endif
 
                 // IT'S NOT MANUEL ANYMORE
-                createcmds(bot);
+                create_cmds(bot);
 
                 ticket::init_ticket_events(bot, conn, config, sql);
                 admin::init_verify_events(bot, conn, sql);
@@ -179,10 +179,6 @@ int main(int argc, char *argv[]) {
 
         if (interaction.get_command_name() == "admin") {
             admin::admin_commands(bot, event, cmd_data, config);
-        }
-
-        if (interaction.get_command_name() == "jtc") {
-            jtc::jtc_commands(bot, event, cmd_data, config);
         }
 
         if (interaction.get_command_name() == "help") {

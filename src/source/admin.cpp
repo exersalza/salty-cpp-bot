@@ -44,6 +44,14 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
                 is_reaction = sc.get_value<bool>(c);
             }
 
+            if (i.name == "text") {
+                res = sc.get_value<std::string>(c);
+
+                if (res.length() > 4096)
+                    res_length = 4097;
+
+            }
+
             if (i.name == "file") {
                 auto at_id = sc.get_value<dpp::snowflake>(c);
                 auto at = event.command.get_resolved_attachment(at_id);
@@ -57,7 +65,7 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
                 char url[at.url.length()];
                 u::stoc(at.url, url);
 
-                // url[strlen(url)-2] = '\0';
+                // url[strlen(url)-2] = '\0'; was a temporary bug inside the discord api, but it's not there anymore.
                 res = u::requests(url);
                 if (res.length() >= INT_MAX) {
                     res_length = 4097;
@@ -78,6 +86,11 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
             }
 
             ++c;
+        }
+
+        if (!title.length() && !res.length()) {
+            event.reply(dpp::message(channel_id, "Can't create message, title and content are missing.").set_flags(dpp::m_ephemeral));
+            return;
         }
 
         if (!title.length()) title = res.substr(0, res.find(' '));
