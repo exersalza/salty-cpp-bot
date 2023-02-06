@@ -140,6 +140,9 @@ inline std::map<std::string, cmds> commands{
                                                    .add_option(dpp::command_option(
                                                            dpp::co_boolean, "server_image",
                                                            "Will set the server image as thumbnail image."))
+                                                   .add_option(dpp::command_option(
+                                                           dpp::co_boolean, "reaction",
+                                                           "Set automated reactions to the message."))
                                    }
                            }
         },

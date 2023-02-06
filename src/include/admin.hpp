@@ -12,8 +12,8 @@
 #include <fmt/format.h>
 #include <mysql++/mysql++.h>
 
-#include "config.hpp"
 #include "utils.hpp"
+#include "config.hpp"
 
 namespace admin {
     void init_admin_events(dpp::cluster &bot);
@@ -32,6 +32,9 @@ namespace admin {
                          mysqlpp::Connection &c,
                          const cfg::sql &sql);
 
+    void set_verify_role(const dpp::cluster &bot, const dpp::slashcommand_t &event, mysqlpp::Connection &c,
+                         const cfg::sql &sql,
+                         dpp::command_data_option &sc);
 };
 
 

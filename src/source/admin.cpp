@@ -3,7 +3,7 @@
 
 //
 // Created by julian on 11/17/22.
-//
+// ⬇️ ⬆️    --
 
 
 #include "../include/admin.hpp"
@@ -23,9 +23,11 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
     if (sc.name == "send") {
         bool is_embed = false;
         bool set_server_image = false;
+        bool is_reaction = false;
         std::string title;
         std::string res;
         size_t res_length;
+        dpp::message msg;
 
         const dpp::snowflake &channel_id = event.command.channel_id;
 
@@ -36,6 +38,10 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
 
             if (i.name == "server_image") {
                 set_server_image = sc.get_value<bool>(c);
+            }
+
+            if (i.name == "reaction") {
+                is_reaction = sc.get_value<bool>(c);
             }
 
             if (i.name == "file") {
@@ -76,6 +82,14 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
 
         if (!title.length()) title = res.substr(0, res.find(' '));
 
+        std::vector<std::string> reactions;
+
+        if (is_reaction) {
+            reactions.reserve(2);
+            reactions.emplace_back("⬆️");
+            reactions.emplace_back("⬇️");
+        }
+
         if (is_embed) {
             if (res_length > 4096) {
                 event.reply(dpp::message(channel_id, "Message can't be created because the Text for "
@@ -93,7 +107,8 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
             if (set_server_image)
                 em.set_thumbnail(event.command.get_guild().get_icon_url());
 
-            bot.message_create(dpp::message(channel_id, em));
+            msg = dpp::message(channel_id, em);
+
         } else {
             if ((title.length() + res_length) > 1996) {
                 event.reply(dpp::message(channel_id, fmt::format(
@@ -101,7 +116,24 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
                         (title.length() + res_length))));
                 return;
             }
-            bot.message_create(dpp::message(channel_id, fmt::format("**{0}**\n\n{1}", title, res)));
+            msg = dpp::message(channel_id, fmt::format("**{0}**\n\n{1}", title, res));
+        }
+
+        if (!is_reaction) {
+            bot.message_create(msg);
+        } else {
+            bot.message_create(msg, [&bot, event, reactions](const dpp::confirmation_callback_t &confm) {
+                if (confm.is_error()) {
+                    ticket::confm_error(bot, event, confm);
+                    return;
+                }
+
+                auto msg = confm.get<dpp::message>();
+
+                for (const auto &i: reactions) {
+                    bot.message_add_reaction(msg, i);
+                }
+            });
         }
 
         event.reply(dpp::message(channel_id, "Message created.").set_flags(dpp::m_ephemeral));
@@ -144,30 +176,7 @@ void admin::verify_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
     auto sc = cmd_data.options[0];
 
     if (sc.name == "role") {
-        event.thinking(true);
-        auto sub = sc.options[0];
-        size_t role = sc.get_value<dpp::snowflake>(0);
-
-        try {
-            ticket::connect(c, sql);
-
-            mysqlpp::Query query = c.query();
-            query << fmt::format("if not exists(select server_id from salty_cpp_bot.verify where server_id='{0}') then"
-                                 "  insert into salty_cpp_bot.verify (server_id, role_id) values ({0}, {1});"
-                                 "else"
-                                 "  update salty_cpp_bot.verify set role_id = {1} where server_id = {0};"
-                                 "end if;", event.command.guild_id, role);
-
-            // Do the query stuff here, so I can drop the db connection afterwards. copy & paste monkey here
-            query.execute();
-            u::kill_query(query);
-            c.disconnect();
-
-            event.edit_response(fmt::format("<@&{0}> is the new Verified role.", role));
-        } catch (std::exception &e) {
-            bot.log(dpp::ll_error, fmt::format("Can't create Verify Role, idk why {0}", e.what()));
-            event.edit_response("Can't do that right now, please try again later.");
-        }
+        set_verify_role(bot, event, c, sql, sc);
     }
 
     if (sc.name == "send") {
@@ -198,5 +207,33 @@ void admin::verify_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
         // Do the query stuff here, so I can drop the db connection afterwards. copy & paste monkey here
         query.execute();
         c.disconnect();
+    }
+}
+
+void admin::set_verify_role(const dpp::cluster &bot, const dpp::slashcommand_t &event, mysqlpp::Connection &c,
+                            const cfg::sql &sql, dpp::command_data_option &sc) {
+    event.thinking(true);
+    auto sub = sc.options[0];
+    size_t role = sc.get_value<dpp::snowflake>(0);
+
+    try {
+        ticket::connect(c, sql);
+
+        mysqlpp::Query query = c.query();
+        query << fmt::format("if not exists(select server_id from salty_cpp_bot.verify where server_id='{0}') then"
+                             "  insert into salty_cpp_bot.verify (server_id, role_id) values ({0}, {1});"
+                             "else"
+                             "  update salty_cpp_bot.verify set role_id = {1} where server_id = {0};"
+                             "end if;", event.command.guild_id, role);
+
+        // Do the query stuff here, so I can drop the db connection afterwards. copy & paste monkey here
+        query.execute();
+        u::kill_query(query);
+        c.disconnect();
+
+        event.edit_response(fmt::format("<@&{0}> is the new Verified role.", role));
+    } catch (std::exception &e) {
+        bot.log(dpp::ll_error, fmt::format("Can't create Verify Role, idk why {0}", e.what()));
+        event.edit_response("Can't do that right now, please try again later.");
     }
 }
