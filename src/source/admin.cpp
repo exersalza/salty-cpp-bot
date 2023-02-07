@@ -206,8 +206,24 @@ void admin::init_verify_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::s
 
             role_id = res[0]["role_id"];
 
-            bot.guild_member_add_role(event.command.guild_id, user.id, role_id);
-            event.edit_response("You are Verified now. :)");
+            bot.guild_get_member(event.command.guild_id, event.command.usr.id,
+                                 [&bot, role_id, event](const dpp::confirmation_callback_t &confm) {
+                if (confm.is_error()) {
+                    ticket::confm_error(bot, event, confm);
+                    return;
+                }
+
+                auto member = confm.get<dpp::guild_member>();
+
+                if (std::count(member.roles.begin(), member.roles.end(), role_id)) {
+                    event.edit_response("You cannot verify yourself twice.");
+                    return;
+                }
+
+                bot.guild_member_add_role(event.command.guild_id, member.user_id, role_id);
+                event.edit_response("You are Verified now. :)");
+            });
+
         }
     });
 }

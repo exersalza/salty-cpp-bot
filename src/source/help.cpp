@@ -14,9 +14,14 @@ void cog::help_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
                         const dpp::command_interaction &cmd_data, const cfg::Config &conf) {
 
     dpp::embed em;
+    if (!cmd_data.options.empty()) {
+        auto sc = cmd_data.options[0];
+
+        return;
+    }
 
     em.set_title("Help Site")
-            .set_description("For more information press the corresponding button")
+            .set_description("For more information type `/help <command name>`")
             .set_color(conf.b_color)
             .set_timestamp(time(nullptr))
             .set_footer("Kenexar.eu", bot.me.get_avatar_url());

@@ -156,7 +156,11 @@ inline std::map<std::string, cmds> commands{
                 "ping",    {       "Shows bot latency, but only when you want",    dpp::p_send_messages}
         },
         {
-                "help",    {       "Shows the help page",                          dpp::p_send_messages}
+                "help",    {"Shows the help page",
+                            dpp::p_send_messages, {
+                                  dpp::command_option(dpp::co_string, "site",
+                                                      "Give a specific help site.")
+                          }}
         },
         {
                 "user",    {"Show user specific stuff, when you don't provide a id, then yours will be used.",
