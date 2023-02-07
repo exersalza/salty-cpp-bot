@@ -6,6 +6,8 @@
 // ⬇️ ⬆️    --
 
 
+
+
 #include "../include/admin.hpp"
 #include "../include/ticket.hpp"
 
@@ -24,9 +26,11 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
         bool is_embed = false;
         bool set_server_image = false;
         bool is_reaction = false;
+        bool is_verify = false;
         std::string title;
         std::string res;
         size_t res_length;
+        size_t color = conf.b_color;
         dpp::message msg;
 
         const dpp::snowflake &channel_id = event.command.channel_id;
@@ -34,6 +38,11 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
         for (auto &i: sc.options) {
             if (i.name == "embed") {
                 is_embed = sc.get_value<bool>(c);
+            }
+
+            if (i.name == "verify") {
+                is_verify = sc.get_value<bool>(c);
+                color = 0x00ff00;
             }
 
             if (i.name == "server_image") {
@@ -88,6 +97,11 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
             ++c;
         }
 
+        if (is_reaction && is_verify) {
+            event.reply(dpp::message(channel_id, "Can't create message with both `verify` and `reactions` set to true."));
+            return;
+        }
+
         if (!title.length() && !res.length()) {
             event.reply(dpp::message(channel_id, "Can't create message, title and content are missing.").set_flags(dpp::m_ephemeral));
             return;
@@ -113,7 +127,7 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
 
             em.set_title(title)
                     .set_description(res)
-                    .set_color(conf.b_color)
+                    .set_color(color)
                     .set_footer("Kenexar.eu", bot.me.get_avatar_url())
                     .set_timestamp(time(nullptr));
 
@@ -130,6 +144,16 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
                 return;
             }
             msg = dpp::message(channel_id, fmt::format("**{0}**\n\n{1}", title, res));
+        }
+
+        if (is_verify) {
+            msg.add_component(
+                    dpp::component().add_component(dpp::component()
+                                                       .set_type(dpp::cot_button)
+                                                       .set_id("verify")
+                                                       .set_emoji("✔️")
+                                                       .set_label("Verify")
+                                                       .set_style(dpp::cos_primary)));
         }
 
         if (!is_reaction) {
@@ -174,6 +198,12 @@ void admin::init_verify_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::s
             mysqlpp::StoreQueryResult res = query.store();
             u::kill_query(query);
             c.disconnect();
+
+            if (res.empty()) {
+                event.edit_response("Verify system is not active, please contact a moderator.");
+                return;
+            }
+
             role_id = res[0]["role_id"];
 
             bot.guild_member_add_role(event.command.guild_id, user.id, role_id);
@@ -215,7 +245,9 @@ void admin::verify_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
         ticket::connect(c, sql);
 
         mysqlpp::Query query = c.query();
-        query << fmt::format("insert into salty_cpp_bot.verify (server_id) values ({0});", event.command.guild_id);
+        query << fmt::format("if not exists(select server_id from salty_cpp_bot.verify where server_id='{0}') then"
+                             "  insert into salty_cpp_bot.verify (server_id) values ({0});"
+                             "end;", event.command.guild_id);
 
         // Do the query stuff here, so I can drop the db connection afterwards. copy & paste monkey here
         query.execute();

@@ -146,6 +146,9 @@ inline std::map<std::string, cmds> commands{
                                                    .add_option(dpp::command_option(
                                                            dpp::co_boolean, "reaction",
                                                            "Set automated reactions to the message."))
+                                                   .add_option(dpp::command_option(
+                                                           dpp::co_boolean, "verify",
+                                                           "Should this message used as the Verify message."))
                                    }
                            }
         },
