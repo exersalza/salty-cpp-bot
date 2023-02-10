@@ -120,7 +120,7 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
         if (is_embed) {
             if (res_length > 4096) {
                 event.reply(dpp::message(channel_id, "Message can't be created because the Text for "
-                                                     "it, is too long to fit in an Embed. (Max size 4096 char.)"));
+                                                     "it, is too long to fit in a Embed. (Max size 4096 char.)"));
                 return;
             }
             dpp::embed em;

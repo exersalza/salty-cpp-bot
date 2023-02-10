@@ -8,23 +8,38 @@
 #include <fmt/format.h>
 
 #include "../include/help.hpp"
+#include "../include/utils.hpp"
 
 
 void cog::help_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
                         const dpp::command_interaction &cmd_data, const cfg::Config &conf) {
 
     dpp::embed em;
-    if (!cmd_data.options.empty()) {
-        auto sc = cmd_data.options[0];
-
-        return;
-    }
-
     em.set_title("Help Site")
-            .set_description("For more information type `/help <command name>`")
             .set_color(conf.b_color)
             .set_timestamp(time(nullptr))
             .set_footer("Kenexar.eu", bot.me.get_avatar_url());
+
+    if (!cmd_data.options.empty()) {
+        auto site = std::get<std::string>(event.get_parameter("site"));
+
+        if (u::stol(site) == "admin") {
+            em.set_title(fmt::format("{} - Admin", em.title));
+            em.set_description("Syntax: `/admin send <args>`\n"
+                                  "Args: \n"
+                                  "`file` -> Attach file for longer texts.\n"
+                                  "`title` -> Set a Title, when none is given, it will take the first word of the body text.\n"
+                                  "`text` -> set a small text. For longer and formatted texts, please consider using the `file` option.\n"
+                                  "`server_image` -> Will set the server image as thumbnail (the little image top right)\n"
+                                  "`reaction` -> Add the arrows from reddit to the message.\n"
+                                  "`verify` -> Will create the verify message with a custom text in the current channel.");
+        }
+
+        event.reply(dpp::message(event.command.channel_id, em));
+        return;
+    }
+
+    em.set_description("For more information type `/help <command name>`");
 
     em.add_field("Ticket", "`/ticket create` to enable your ticket system.\n"
                            "`/ticket config` to lookup your ticket config.\n"
