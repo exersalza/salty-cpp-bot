@@ -11,6 +11,11 @@
 #include "../include/utils.hpp"
 
 
+static std::vector<std::string> implemented = {
+        "admin",
+        "ticket"
+};
+
 void cog::help_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
                         const dpp::command_interaction &cmd_data, const cfg::Config &conf) {
 
@@ -23,7 +28,14 @@ void cog::help_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
     if (!cmd_data.options.empty()) {
         auto site = std::get<std::string>(event.get_parameter("site"));
 
-        if (u::stol(site) == "admin") {
+        std::string _site = u::stol(site);
+
+        if (!std::count(implemented.begin(), implemented.end(), _site)) {
+            event.reply(dpp::message(event.command.channel_id, fmt::format("No valid help site `{}`", _site)).set_flags(dpp::m_ephemeral));
+            return;
+        }
+
+        if (_site == "admin") {
             em.set_title(fmt::format("{} - Admin", em.title));
             em.set_description("Syntax: `/admin send <args>`\n"
                                   "Args: \n"
@@ -33,6 +45,25 @@ void cog::help_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
                                   "`server_image` -> Will set the server image as thumbnail (the little image top right)\n"
                                   "`reaction` -> Add the arrows from reddit to the message.\n"
                                   "`verify` -> Will create the verify message with a custom text in the current channel.");
+        }
+
+        if (_site == "ticket") {
+            em.set_title(fmt::format("{} - Ticket", em.title));
+            em.set_description("Syntax: `/ticket <Subcommand> <args>`\n"
+                               "Subcommand's:\n"
+                               "`/ticket create [channel_id]` -> Creates the ticket message so that user can create them.\n"
+                               "`/ticket config` -> Shows you the current server ticket system config.\n"
+                               "~~`/ticket init` -> Starts ticket system setup wizard.~~\n"
+                               "`/ticket enable/disable` -> enables/disables the ticket system.\n"
+                               "`/ticket set <args>` -> set configuration parameters.\n"
+                               " - `maxticketcount` -> defines a max open ticket count for users."
+                               " - `roles` -> Define support roles that are being added when the ticket gets created.\n"
+                               " - `notify` -> Set a notify channel where 'New Ticket' alerts getting sent to.\n"
+                               " - `category` -> Define a category where new tickets should be created in.\n\n"
+                               "`/ticket remove <args>` -> Removes configuration.\n"
+                               " - `roles` -> Removes support roles.\n"
+                               " - `category` -> Removes the new ticket category.\n"
+                               " - `notify` -> Removes the notify channel.");
         }
 
         event.reply(dpp::message(event.command.channel_id, em));
