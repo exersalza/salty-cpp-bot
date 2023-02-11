@@ -13,7 +13,8 @@
 
 static std::vector<std::string> implemented = {
         "admin",
-        "ticket"
+        "ticket",
+        "twitch"
 };
 
 void cog::help_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
@@ -31,7 +32,8 @@ void cog::help_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
         std::string _site = u::stol(site);
 
         if (!std::count(implemented.begin(), implemented.end(), _site)) {
-            event.reply(dpp::message(event.command.channel_id, fmt::format("No valid help site `{}`", _site)).set_flags(dpp::m_ephemeral));
+            event.reply(dpp::message(event.command.channel_id,
+                                     fmt::format("No valid help site `{}`", _site)).set_flags(dpp::m_ephemeral));
             return;
         }
 
@@ -64,6 +66,14 @@ void cog::help_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
                                " - `roles` -> Removes support roles.\n"
                                " - `category` -> Removes the new ticket category.\n"
                                " - `notify` -> Removes the notify channel.");
+        }
+
+        if (_site == "twitch") {
+            em.set_title(fmt::format("{} - Twitch", em.title));
+            em.set_description("Syntax: `/twitch <subcommand> [args]`\n"
+                               " - `add <streamer name> [channel_id]` -> Add a server to the server's watchlist.\n"
+                               " - `removed <streamer name>` -> Removes the streamer from the watchlist.\n"
+                               " - `list` -> Show the servers watchlist");
         }
 
         event.reply(dpp::message(event.command.channel_id, em));

@@ -18,6 +18,8 @@ docker build -t salty_cpp_bot:$(date "+%y%m%d") .
 sleep 1
 
 : === Start bot... ===
+docker stop "$(cat "$HOME"/.salty_cpp_bot_docker_version)"
+
 docker run -d salty_cpp_bot:$(date "+%y%m%d")
 
 : === Start Docker checker... ===
@@ -27,4 +29,4 @@ printf "salty_cpp_bot:$(date "+%y%m%d")" > "$HOME"/.salty_cpp_bot_docker_version
 screen kill salty_cpp_bot_checker
 screen -dmS salty_cpp_bot_checker ./dockerChecker.py
 
-: === Successfully started everything, you're good to go. :) ===
+: === Successfully started everything, you\'re good to go. ===

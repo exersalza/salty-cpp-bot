@@ -26,7 +26,7 @@
 #include "include/initCommands.hpp"
 #include "include/twitchIntegration.hpp"
 
-#define IS_DEV true
+#define IS_DEV false
 
 int main(int argc, char *argv[]) {
     // Normal config shit

@@ -196,7 +196,7 @@ inline std::map<std::string, cmds> commands{
                             .add_option(dpp::command_option(dpp::co_string, "name", "Give the name for the Streamer to add.", true))
                             .add_option(dpp::command_option(dpp::co_channel, "channel", "The channel where the live message should be displayed.", true))
                             .add_option(dpp::command_option(dpp::co_string, "message", "Give a message to send with the Live message.", false)),
-                        dpp::command_option(dpp::co_sub_command, "remove", "Removed given streamer from the Watchlist.")
+                        dpp::command_option(dpp::co_sub_command, "remove", "Removes given streamer from the Watchlist.")
                             .add_option(dpp::command_option(dpp::co_string, "name", "The name of the streamer to remove.")),
                         dpp::command_option(dpp::co_sub_command, "list", "List all streamer that are linked to this Server.")
                 }}
