@@ -18,7 +18,8 @@ docker build -t salty_cpp_bot:$(date "+%y%m%d") .
 sleep 1
 
 : === Start bot... ===
-docker stop "$(cat "$HOME"/.salty_cpp_bot_docker_version)"
+#hopefull fix, but next creation will show
+docker stop "$(docker ps -a -q --filter ancestor="$(cat "$HOME"/.salty_cpp_bot_docker_version)" --format="{{.ID}}"))"
 
 docker run -d salty_cpp_bot:$(date "+%y%m%d")
 
