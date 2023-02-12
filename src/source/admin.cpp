@@ -22,6 +22,8 @@ void admin::admin_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
     dpp::guild guild = event.command.get_guild();
     short c = 0;
 
+    bot.log(dpp::ll_debug, fmt::format("Admin command invokation at {} command: {} {}", guild.name, event.command.get_command_name(), sc.name));
+
     if (sc.name == "send") {
         bool is_embed = false;
         bool set_server_image = false;
@@ -185,6 +187,7 @@ void admin::init_verify_events(dpp::cluster &bot, mysqlpp::Connection &c, cfg::s
         auto event_cmd = event.command;
 
         if (event.custom_id == "verify") {
+            bot.log(dpp::ll_debug, fmt::format("Verified user: {}", event.command.get_guild().name));
             event.thinking(true);
 
             dpp::user user = event_cmd.usr;
@@ -233,6 +236,9 @@ void admin::verify_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
                             mysqlpp::Connection &c, const cfg::sql &sql) {
 
     auto sc = cmd_data.options[0];
+    auto guild = event.command.get_guild();
+
+    bot.log(dpp::ll_debug, fmt::format("Verify command invokation at {} command: {} {}", guild.name, event.command.get_command_name(), sc.name));
 
     if (sc.name == "role") {
         set_verify_role(bot, event, c, sql, sc);
@@ -262,8 +268,8 @@ void admin::verify_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
 
         mysqlpp::Query query = c.query();
         query << fmt::format("if not exists(select server_id from salty_cpp_bot.verify where server_id='{0}') then"
-                             "  insert into salty_cpp_bot.verify (server_id) values ({0});"
-                             "end;", event.command.guild_id);
+                             "  insert into salty_cpp_bot.verify (server_id) values ('{0}');"
+                             "end if;", guild.id);
 
         // Do the query stuff here, so I can drop the db connection afterwards. copy & paste monkey here
         query.execute();
