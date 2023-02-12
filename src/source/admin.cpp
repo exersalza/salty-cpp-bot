@@ -283,6 +283,7 @@ void admin::set_verify_role(const dpp::cluster &bot, const dpp::slashcommand_t &
     auto sub = sc.options[0];
     size_t role = sc.get_value<dpp::snowflake>(0);
 
+
     try {
         ticket::connect(c, sql);
 

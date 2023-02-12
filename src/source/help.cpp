@@ -20,6 +20,8 @@ static std::vector<std::string> implemented = {
 void cog::help_commands(dpp::cluster &bot, const dpp::slashcommand_t &event,
                         const dpp::command_interaction &cmd_data, const cfg::Config &conf) {
 
+    bot.log(dpp::ll_debug, fmt::format("Admin command invokation at {} command: {}", event.command.get_guild().name, event.command.get_command_name()));
+
     dpp::embed em;
     em.set_title("Help Site")
             .set_color(conf.b_color)
