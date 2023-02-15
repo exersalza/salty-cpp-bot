@@ -1,7 +1,7 @@
 #!/bin/bash
 set -x
 
-#  USED FOR Dockerfile, WHEN YOUR SYSTEM CAN RUN .so FILES, YOU CAN ALSO THIS ONE.
+# USED FOR Dockerfile, WHEN YOUR SYSTEM CAN RUN .so FILES, YOU CAN ALSO THIS ONE.
 
 : === Downloading deps... ===
 git clone https://github.com/kenexar/salty-cpp-bot-flibs /home/flibs/
