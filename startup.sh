@@ -5,7 +5,7 @@ set -x
 
 : === Downloading deps... ===
 git clone https://github.com/kenexar/salty-cpp-bot-flibs /home/flibs/
-git clone https://github.com/brainboxdotcc/DPP /home/flibs/DPP --branch v10.0.22
+#git clone https://github.com/brainboxdotcc/DPP /home/flibs/DPP --branch v10.0.22
 
 # Copy mysql++ src files to te dest folder, reason is that you can't install yay or paru on docker.
 : === Copying mysql++ stuff... ===
