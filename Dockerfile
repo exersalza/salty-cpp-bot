@@ -11,7 +11,7 @@ WORKDIR /home
 #RUN pacman -Sy git curl openssl cmake gcc make fmt mysql --noconfirm
 
 RUN apt-get update
-RUN apt-get install -y libfmt-dev libcurl4-openssl-dev ca-certificates
+RUN apt-get install -y libfmt-dev libcurl4-openssl-dev ca-certificates libmysqlclient-dev
 
 # run startup, it's for that the librarys that are on aur getting copied right.
 # libs are at https://github.com/kenexar/satly-cpp-bot-flibs
