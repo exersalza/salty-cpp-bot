@@ -5,10 +5,10 @@ WORKDIR /home
 
 
 # install deps
-RUN pacman -Sy archlinux-keyring --noconfirm
-RUN pacman-key --refresh-keys
-RUN pacman -Syyu --noconfirm
-RUN pacman -Sy git curl openssl cmake gcc make fmt mysql --noconfirm
+#RUN pacman -Sy archlinux-keyring --noconfirm
+#RUN pacman-key --refresh-keys
+#RUN pacman -Syyu --noconfirm
+#RUN pacman -Sy git curl openssl cmake gcc make fmt mysql --noconfirm
 
 # run startup, it's for that the librarys that are on aur getting copied right.
 # libs are at https://github.com/kenexar/satly-cpp-bot-flibs
