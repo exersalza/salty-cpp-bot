@@ -12,7 +12,7 @@ WORKDIR /home
 
 # run startup, it's for that the librarys that are on aur getting copied right.
 # libs are at https://github.com/kenexar/satly-cpp-bot-flibs
-RUN cd /home/ && chmod 777 startup.sh && ./startup.sh
+RUN cd /home/ && ./startup.sh
 
 # Run compiling sequence
 RUN cmake -DCMAKE_BUILD_TYPE=Release . && make
