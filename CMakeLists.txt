@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.23)
+cmake_minimum_required(VERSION 3.16.3)
 project(dcbot VERSION 1.0 DESCRIPTION "First bot in cpp lulw")
 
 set(CMAKE_CXX_STANDARD 20)
