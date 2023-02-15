@@ -10,6 +10,8 @@ WORKDIR /home
 #RUN pacman -Syyu --noconfirm
 #RUN pacman -Sy git curl openssl cmake gcc make fmt mysql --noconfirm
 
+RUN add-apt-repository universe
+RUN apt-get update
 RUN apt-get install -y libfmt-dev
 
 # run startup, it's for that the librarys that are on aur getting copied right.
