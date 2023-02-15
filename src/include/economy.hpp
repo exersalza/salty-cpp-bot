@@ -10,8 +10,8 @@
 
 #include <string>
 #include <vector>
-#include <nlohmann/json.hpp>
 #include <dpp/dpp.h>
+#include <dpp/nlohmann/json.hpp>
 
 
 namespace ec {

@@ -6,7 +6,7 @@
 //
 
 #include <string>
-#include <nlohmann/json.hpp>
+#include <dpp/nlohmann/json.hpp>
 
 #include "../include/cogs.hpp"
 #include "../include/economy.hpp"

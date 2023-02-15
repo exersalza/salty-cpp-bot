@@ -9,7 +9,7 @@
 #define DCBOT_CONFIG_HPP
 
 #include <string>
-#include <nlohmann/json.hpp>
+#include <dpp/nlohmann/json.hpp>
 
 using json = nlohmann::json;
 

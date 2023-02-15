@@ -7,7 +7,7 @@
 
 #include <fstream>
 #include <iostream>
-#include <nlohmann/json.hpp>
+#include <dpp/nlohmann/json.hpp>
 
 #include "../include/config.hpp"
 

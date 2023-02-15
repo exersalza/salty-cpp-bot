@@ -10,8 +10,8 @@
 
 #include <string>
 #include <dpp/dpp.h>
-#include <nlohmann/json.hpp>
 #include <mysql++/mysql++.h>
+#include <dpp/nlohmann/json.hpp>
 
 #include "config.hpp"
 
