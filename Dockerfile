@@ -1,6 +1,6 @@
 #syntax=docker/dockerfile:1
 FROM brainboxdotcc/dpp
-COPY . home
+COPY . /home
 WORKDIR /home
 
 
@@ -9,6 +9,8 @@ WORKDIR /home
 #RUN pacman-key --refresh-keys
 #RUN pacman -Syyu --noconfirm
 #RUN pacman -Sy git curl openssl cmake gcc make fmt mysql --noconfirm
+
+RUN apt-get update cmake -y
 
 # run startup, it's for that the librarys that are on aur getting copied right.
 # libs are at https://github.com/kenexar/satly-cpp-bot-flibs
